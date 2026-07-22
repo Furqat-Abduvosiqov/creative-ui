@@ -1,0 +1,63 @@
+<svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice" focusable="false">
+  @switch (variant()) {
+    @case (1) {
+      <!-- Tessellate: overlapping fields, the way a schedule overlaps itself. -->
+      <g class="plate plate--a">
+        <circle class="ink-a" cx="146" cy="168" r="100" />
+        <rect class="ink-a" x="214" y="312" width="132" height="132" />
+      </g>
+      <g class="plate plate--b">
+        <circle class="line-b" cx="236" cy="236" r="100" />
+        <path class="line-b" d="M40 88 H360 M40 452 H360" />
+        <circle class="ink-b" cx="98" cy="376" r="48" />
+      </g>
+    }
+
+    @case (2) {
+      <!-- Overtone: a waveform, printed twice and slightly out of register. -->
+      <g class="plate plate--a">
+        @for (bar of bars; track $index; let i = $index) {
+          <rect
+            class="ink-a"
+            [attr.x]="46 + i * 39"
+            [attr.y]="250 - bar * 190"
+            width="24"
+            [attr.height]="bar * 380"
+            rx="12"
+          />
+        }
+      </g>
+      <g class="plate plate--b">
+        <circle class="line-b" cx="200" cy="250" r="132" />
+        <path class="line-b" d="M20 250 H380" />
+      </g>
+    }
+
+    @case (3) {
+      <!-- Pallas: concentric sweeps and a sight line. -->
+      <g class="plate plate--a">
+        <circle class="ink-a" cx="200" cy="250" r="58" />
+        <path class="line-a" d="M200 40 V150 M200 350 V460" />
+      </g>
+      <g class="plate plate--b">
+        <circle class="ring line-b" cx="200" cy="250" r="112" />
+        <circle class="line-b" cx="200" cy="250" r="164" />
+        <path class="line-b" d="M20 250 H120 M280 250 H380" />
+        <rect class="ink-b" x="286" y="76" width="62" height="62" />
+      </g>
+    }
+
+    @case (4) {
+      <!-- Foundry Rail: freight bands running the length of the sheet. -->
+      <g class="plate plate--a">
+        <path class="ink-a" d="M-40 300 L200 60 L286 60 L46 300 Z" />
+        <path class="ink-a" d="M74 440 L314 200 L400 200 L160 440 Z" />
+      </g>
+      <g class="plate plate--b">
+        <circle class="ink-b" cx="292" cy="132" r="54" />
+        <path class="line-b" d="M28 60 V440 M372 60 V440" />
+        <circle class="line-b" cx="118" cy="374" r="72" />
+      </g>
+    }
+  }
+</svg>

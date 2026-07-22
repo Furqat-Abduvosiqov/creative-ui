@@ -1,0 +1,37 @@
+<div class="band-grid">
+  <div class="band-rail" aria-hidden="true">
+    <span class="band-rail-index">03</span>
+    <span class="band-rail-word">Work</span>
+  </div>
+
+  <div>
+    <header class="band-head" appReveal>
+      <h2 class="band-title">Selected work.</h2>
+      <p class="band-intro">
+        Four we can talk about. Each one shipped, each one still in use. Covers are drawn, not
+        screenshotted &mdash; the interfaces themselves are under NDA.
+      </p>
+    </header>
+
+    <ul class="cases">
+      @for (item of cases; track item.name; let i = $index) {
+        <li class="case" [appReveal]="i * 110">
+          <article>
+            <div class="poster">
+              <app-poster-art [variant]="item.variant" />
+            </div>
+
+            <div class="meta">
+              <h3 class="name">{{ item.name }}</h3>
+              <p class="summary">{{ item.summary }}</p>
+              <p class="tags">
+                <span class="role">{{ item.role }}</span>
+                <span class="year">{{ item.year }}</span>
+              </p>
+            </div>
+          </article>
+        </li>
+      }
+    </ul>
+  </div>
+</div>

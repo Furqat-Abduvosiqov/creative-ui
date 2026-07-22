@@ -1,0 +1,87 @@
+@use 'mixins' as m;
+
+:host {
+  position: relative;
+  z-index: 1;
+  display: block;
+  padding-block: var(--band);
+}
+
+.step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(1.25rem, 3vw, 2.25rem);
+}
+
+.marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding-block-start: 0.55rem;
+}
+
+.dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid var(--pink);
+  background: var(--paper);
+  transition: background var(--dur-2) var(--ease-out) 0.45s;
+}
+
+.step.is-revealed .dot {
+  background: var(--pink);
+}
+
+// The thread between steps draws itself downward as each step arrives, so the
+// sequence assembles at reading pace instead of being there all at once.
+.thread {
+  width: 1px;
+  flex: 1;
+  background: var(--rule-strong);
+  transform-origin: top;
+  scale: 1 0;
+  transition: scale 0.85s var(--ease-out) 0.15s;
+}
+
+.step.is-revealed .thread {
+  scale: 1 1;
+}
+
+.step:last-child .thread {
+  // Nothing follows, so the line would be pointing at an empty page.
+  display: none;
+}
+
+.text {
+  padding-block-end: clamp(2.25rem, 5vw, 3.5rem);
+}
+
+.step:last-child .text {
+  padding-block-end: 0;
+}
+
+.step-index {
+  @include m.label;
+
+  color: var(--pink);
+  font-variant-numeric: tabular-nums;
+}
+
+.step-name {
+  margin-block: 0.35rem 0.55rem;
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+}
+
+.step-detail {
+  max-width: 52ch;
+  font-size: var(--step-0);
+  color: var(--body);
+}

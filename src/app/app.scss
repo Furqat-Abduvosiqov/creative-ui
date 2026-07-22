@@ -1,0 +1,10 @@
+:host {
+  display: block;
+}
+
+// Everything readable sits above the ink layer, which is pinned at z-index 0.
+main {
+  position: relative;
+  z-index: 1;
+  display: block;
+}

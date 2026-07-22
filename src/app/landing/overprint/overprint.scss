@@ -1,0 +1,35 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: clip;
+  pointer-events: none;
+  // Own stacking context, so the discs blend against the page ground and not
+  // against whatever happens to be painted underneath the app root.
+  isolation: isolate;
+}
+
+.ink {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: min(62vw, 40rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  translate: calc(var(--x, 50vw) - 50%) calc(var(--y, 40vh) - 50%);
+  filter: blur(clamp(3rem, 7vw, 5.5rem));
+  opacity: var(--halo);
+  mix-blend-mode: var(--blend);
+  will-change: translate;
+}
+
+.ink--pink {
+  background: var(--pink);
+}
+
+.ink--blue {
+  background: var(--blue);
+  // Slightly smaller, so the pink always reads as the under-layer and the
+  // overlap has a visible edge on both sides.
+  width: min(54vw, 34rem);
+}

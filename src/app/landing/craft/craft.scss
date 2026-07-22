@@ -1,0 +1,73 @@
+@use 'mixins' as m;
+
+:host {
+  position: relative;
+  z-index: 1;
+  display: block;
+  padding-block: var(--band);
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1px;
+  // A one-pixel gap over an inked ground draws every divider in the grid with
+  // no pseudo-elements and no rules that break at the wrap points.
+  background: var(--rule);
+  border: 1px solid var(--rule);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  background: var(--paper);
+  transition: background var(--dur-2) var(--ease-out);
+
+  &:hover {
+    background: var(--paper-2);
+  }
+}
+
+// The index carries the misregistration motif: a second impression in the other
+// ink, resting almost on top of the first and pulling further out on hover.
+.item-index {
+  position: relative;
+  align-self: flex-start;
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  font-weight: 500;
+  color: var(--pink);
+  margin-block-end: clamp(1.75rem, 5vw, 3rem);
+}
+
+.item-index::after {
+  content: attr(data-text);
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  color: var(--blue);
+  mix-blend-mode: var(--blend);
+  translate: 0.09em 0.07em;
+  transition: translate var(--dur-2) var(--ease-over);
+}
+
+.item:hover .item-index::after {
+  translate: 0.34em 0.24em;
+}
+
+.item-name {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.item-blurb {
+  font-size: var(--step--1);
+  line-height: 1.62;
+  color: var(--body);
+}

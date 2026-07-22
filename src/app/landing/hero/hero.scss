@@ -1,0 +1,376 @@
+@use 'mixins' as m;
+
+:host {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-content: center;
+  min-height: min(calc(100svh - 4.5rem), 50rem);
+  padding-block: clamp(2rem, 7vh, 4.5rem) clamp(5rem, 13vh, 8rem);
+}
+
+.grid {
+  @include m.railed;
+}
+
+/* ---------- left rail ---------------------------------------------------- */
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding-block-start: 0.5rem;
+}
+
+.rail-index {
+  @include m.label;
+
+  color: var(--pink);
+}
+
+.rail-line {
+  width: 1px;
+  height: clamp(3rem, 9vh, 5.5rem);
+  background: var(--rule-strong);
+  transform-origin: top;
+  scale: 1 0;
+}
+
+.rail-word {
+  @include m.label;
+
+  writing-mode: vertical-rl;
+  letter-spacing: 0.22em;
+}
+
+@media (max-width: 55rem) {
+  .rail {
+    display: none;
+  }
+}
+
+/* ---------- headline ----------------------------------------------------- */
+
+.eyebrow {
+  @include m.label;
+
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  opacity: 0;
+}
+
+.eyebrow-dot {
+  width: 0.45em;
+  height: 0.45em;
+  border-radius: 50%;
+  background: var(--pink);
+  flex: none;
+}
+
+.headline {
+  @include m.display(var(--step-6));
+
+  margin-block: clamp(1.1rem, 3vh, 1.9rem);
+  color: var(--ink);
+  max-width: 14ch;
+}
+
+// Each line is its own window. The span inside starts below the sill and rises
+// through it, so the type appears to be printed rather than faded in.
+.line {
+  display: block;
+  overflow: hidden;
+  // Without this the clip lands on the baseline and eats every descender.
+  padding-block-end: 0.09em;
+}
+
+.line > span {
+  display: block;
+  transform: translateY(106%);
+}
+
+/* ---------- lede and actions --------------------------------------------- */
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+}
+
+.lede {
+  flex: 1 1 22rem;
+  max-width: 42ch;
+  font-size: var(--step-0);
+  color: var(--body);
+  opacity: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  opacity: 0;
+}
+
+.btn {
+  @include m.label;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 1.05em 1.7em;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  // Set by the magnetic directive; the transition is what turns a stream of
+  // per-frame writes into a weighted pull rather than a rigid snap.
+  translate: var(--mx, 0) var(--my, 0);
+  transition:
+    translate 0.35s var(--ease-out),
+    background var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out),
+    gap var(--dur-2) var(--ease-over);
+}
+
+.btn--solid {
+  background: var(--ink);
+  color: var(--paper);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--blue);
+    gap: 0.95em;
+  }
+}
+
+.btn--ghost {
+  border-color: var(--rule-strong);
+  color: var(--ink);
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--pink);
+    color: var(--pink);
+  }
+}
+
+.btn-arrow {
+  font-size: 1.05em;
+  line-height: 1;
+}
+
+/* ---------- drifting marks ----------------------------------------------- */
+
+.marks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.mark {
+  position: absolute;
+  display: block;
+  scale: 0;
+}
+
+.mark--disc {
+  inset-block-start: 9%;
+  inset-inline-end: 5%;
+  width: clamp(5rem, 13vw, 11rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--pink);
+  opacity: 0.5;
+  mix-blend-mode: var(--blend);
+  translate: 0 calc(var(--parallax, 0) * -2.5rem);
+}
+
+.mark--square {
+  inset-block-end: 14%;
+  inset-inline-end: 14%;
+  width: clamp(3.5rem, 8vw, 6.5rem);
+  aspect-ratio: 1;
+  border: 1.5px solid var(--blue);
+  rotate: calc(14deg + var(--parallax, 0) * 18deg);
+  translate: 0 calc(var(--parallax, 0) * 1.8rem);
+}
+
+.mark--arc {
+  inset-block-start: 46%;
+  inset-inline-end: 30%;
+  width: clamp(4rem, 9vw, 7.5rem);
+  aspect-ratio: 1;
+  border: 1.5px solid var(--ink);
+  border-block-end-color: transparent;
+  border-inline-start-color: transparent;
+  border-radius: 50%;
+  opacity: 0.28;
+  rotate: calc(var(--parallax, 0) * -25deg);
+}
+
+@media (max-width: 48rem) {
+  .mark--arc {
+    display: none;
+  }
+}
+
+/* ---------- scroll cue --------------------------------------------------- */
+
+.cue {
+  position: absolute;
+  inset-block-end: clamp(1.5rem, 4vh, 2.75rem);
+  inset-inline-start: var(--gutter);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  opacity: 0;
+}
+
+.cue-label {
+  @include m.label;
+}
+
+.cue-track {
+  position: relative;
+  width: 1px;
+  height: 2.75rem;
+  overflow: hidden;
+  background: var(--rule);
+}
+
+.cue-bead {
+  position: absolute;
+  inset-inline: 0;
+  height: 45%;
+  background: var(--pink);
+}
+
+/* ---------- the entrance ------------------------------------------------- */
+
+// Everything above declares its resting state. The sequence below is the only
+// place that says when each part arrives, so the choreography can be read in
+// one block instead of hunted for across the file.
+:host(.is-ready) {
+  .eyebrow {
+    animation: rise var(--dur-3) var(--ease-out) 80ms both;
+  }
+
+  .rail-line {
+    animation: draw 0.8s var(--ease-out) 260ms both;
+  }
+
+  .line > span {
+    animation: line-rise var(--dur-3) var(--ease-out) both;
+    animation-delay: calc(200ms + var(--i) * 95ms);
+  }
+
+  .print::after {
+    animation: misregister 1.1s var(--ease-over) 640ms both;
+  }
+
+  .lede {
+    animation: rise var(--dur-3) var(--ease-out) 620ms both;
+  }
+
+  .actions {
+    animation: rise var(--dur-3) var(--ease-out) 720ms both;
+  }
+
+  .mark {
+    animation: pop 0.9s var(--ease-over) both;
+  }
+
+  .mark--disc {
+    animation-delay: 320ms;
+  }
+
+  .mark--square {
+    animation-delay: 440ms;
+  }
+
+  .mark--arc {
+    animation-delay: 540ms;
+  }
+
+  .cue {
+    animation: rise var(--dur-3) var(--ease-out) 950ms both;
+  }
+
+  @include m.motion-safe {
+    .cue-bead {
+      animation: bead 2s var(--ease-out) 1.4s infinite;
+    }
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.1rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes line-rise {
+  from {
+    transform: translateY(106%) rotate(1.6deg);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+@keyframes draw {
+  from {
+    scale: 1 0;
+  }
+
+  to {
+    scale: 1 1;
+  }
+}
+
+@keyframes misregister {
+  from {
+    opacity: 0;
+    translate: 0.55em -0.22em;
+  }
+
+  55% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0.055em 0.04em;
+  }
+}
+
+@keyframes pop {
+  from {
+    scale: 0;
+  }
+
+  to {
+    scale: 1;
+  }
+}
+
+@keyframes bead {
+  from {
+    translate: 0 -110%;
+  }
+
+  to {
+    translate: 0 250%;
+  }
+}

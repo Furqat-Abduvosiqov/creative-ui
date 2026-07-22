@@ -1,0 +1,62 @@
+@use 'mixins' as m;
+
+:host {
+  display: block;
+  block-size: 100%;
+}
+
+svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+// The two plates. `--sep` is published by the card; at rest the plates sit in
+// register and nothing moves. The timing lives with `--sep` on the card rather
+// than here — transitioning both the variable and the translate it feeds makes
+// the whole thing lag twice.
+.plate--a {
+  translate: calc(var(--sep, 0px) * -1) calc(var(--sep, 0px) * -0.55);
+}
+
+.plate--b {
+  translate: var(--sep, 0px) calc(var(--sep, 0px) * 0.55);
+  mix-blend-mode: var(--blend);
+}
+
+.ink-a {
+  fill: var(--pink);
+}
+
+.ink-b {
+  fill: var(--blue);
+}
+
+.line-a {
+  fill: none;
+  stroke: var(--pink);
+  stroke-width: 2.5;
+}
+
+.line-b {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 2.5;
+}
+
+// One element that never settles, so a poster left alone on screen is still
+// alive. Slow enough that it reads as drift rather than as a spinner.
+.ring {
+  transform-origin: 200px 250px;
+  stroke-dasharray: 40 22;
+
+  @include m.motion-safe {
+    animation: sweep 26s linear infinite;
+  }
+}
+
+@keyframes sweep {
+  to {
+    rotate: 360deg;
+  }
+}

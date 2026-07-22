@@ -1,0 +1,101 @@
+@use 'mixins' as m;
+
+:host {
+  position: relative;
+  z-index: 1;
+  display: block;
+  padding-block: var(--band);
+}
+
+.cases {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: clamp(2.25rem, 5vw, 4rem);
+}
+
+// Dropping the even column breaks the tidy row rhythm and lets the grid read as
+// a spread rather than a table of products.
+@media (min-width: 62rem) {
+  .case:nth-child(even) {
+    margin-block-start: clamp(3rem, 7vw, 6rem);
+  }
+}
+
+.case {
+  --sep: 0px;
+
+  transition: --sep var(--dur-2) var(--ease-over);
+}
+
+// Everyone sees the plates pull apart and register once, as the card arrives —
+// the mechanic should not be reachable only by people with a mouse. `backwards`
+// rather than `both`, so the finished animation releases the property and the
+// hover rule below can still take it.
+.case.is-revealed {
+  animation: register 1.15s var(--ease-over) backwards;
+}
+
+.case:hover {
+  --sep: 8px;
+}
+
+.poster {
+  aspect-ratio: 4 / 5;
+  overflow: clip;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  transition: border-color var(--dur-2) var(--ease-out);
+}
+
+.case:hover .poster {
+  border-color: var(--rule-strong);
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-block-start: 1.15rem;
+}
+
+.name {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--ink);
+}
+
+.summary {
+  font-size: var(--step--1);
+  line-height: 1.6;
+  color: var(--body);
+  max-width: 44ch;
+}
+
+.tags {
+  @include m.label;
+
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block-start: 0.7rem;
+  margin-block-start: 0.35rem;
+  border-block-start: 1px solid var(--rule);
+}
+
+.year {
+  font-variant-numeric: tabular-nums;
+  color: var(--pink);
+}
+
+@keyframes register {
+  from {
+    --sep: 14px;
+  }
+
+  to {
+    --sep: 0px;
+  }
+}

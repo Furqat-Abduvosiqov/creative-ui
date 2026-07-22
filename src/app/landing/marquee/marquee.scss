@@ -1,0 +1,56 @@
+@use 'mixins' as m;
+
+:host {
+  position: relative;
+  z-index: 1;
+  display: block;
+  overflow: clip;
+  padding-block: 1.15rem;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.track {
+  display: flex;
+  width: max-content;
+
+  @include m.motion-safe {
+    animation: run 38s linear infinite;
+  }
+}
+
+// Pausing on hover is not decoration: the words are links to nothing, but a
+// reader who wants to finish the list should not have to chase it.
+:host(:hover) .track,
+:host(:focus-within) .track {
+  animation-play-state: paused;
+}
+
+.run {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+li {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 2.6vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.sep {
+  color: var(--pink);
+  font-size: 0.62em;
+  padding-inline: clamp(0.9rem, 2.4vw, 2rem);
+  translate: 0 -0.1em;
+}
+
+@keyframes run {
+  to {
+    translate: -50% 0;
+  }
+}
