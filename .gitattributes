@@ -1,0 +1,18 @@
+# Normalise line endings so a CRLF checkout never shows up as a diff or as a
+# phantom Prettier failure. Everything is LF in the repository; Git converts on
+# checkout according to the platform.
+* text=auto eol=lf
+
+# Binary assets must never be touched.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.pdf binary
