@@ -15,6 +15,7 @@ interface Step {
   styleUrl: './process.scss',
   host: {
     id: 'process',
+    class: 'band',
   },
 })
 export class Process {

@@ -18,6 +18,7 @@ interface Case {
   styleUrl: './work.scss',
   host: {
     id: 'work',
+    class: 'band',
   },
 })
 export class Work {

@@ -10,6 +10,7 @@ import { Reveal } from '../../shared/reveal';
   styleUrl: './contact.scss',
   host: {
     id: 'contact',
+    class: 'band',
   },
 })
 export class Contact {}

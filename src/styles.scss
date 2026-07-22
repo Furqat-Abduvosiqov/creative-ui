@@ -87,10 +87,6 @@ body::after {
   @include m.shell;
 }
 
-.label {
-  @include m.label;
-}
-
 // The recurring motif: a word printed twice, once in each ink, the second
 // impression a hair out of register. Global because it appears in more than one
 // section and the two copies must never drift apart.
@@ -101,7 +97,13 @@ body::after {
 }
 
 .print::after {
+  // Generated content is exposed to the accessibility tree by most engines, so
+  // the plain form would have a screen reader announce "mean it mean it". The
+  // second declaration supplies empty alternative text; engines that do not
+  // understand the `/ <string>` syntax keep the first and simply repeat the
+  // word, which is the safer way round to degrade.
   content: attr(data-text);
+  content: attr(data-text) / '';
   position: absolute;
   inset-block-start: 0;
   inset-inline-start: 0;
@@ -152,8 +154,9 @@ body::after {
 }
 
 // Section chrome. Deliberately global rather than a SCSS partial each section
-// imports: a partial would be copied into five component stylesheets, whereas
-// this ships once and still cascades into every component's DOM.
+// imports: a partial would be copied into every component stylesheet, whereas
+// this ships once. Sections opt in with `host: { class: 'band' }` so the shared
+// rhythm is declared here and nowhere else.
 .band {
   position: relative;
   z-index: 1;
@@ -249,5 +252,11 @@ body::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    // Zeroing duration alone is not enough, and the omission is worse than no
+    // safety net at all: an entrance whose resting state is opacity 0 holds
+    // that state for the whole delay, so the hero would sit invisible for the
+    // best part of a second and then snap in.
+    animation-delay: 0s !important;
+    transition-delay: 0s !important;
   }
 }

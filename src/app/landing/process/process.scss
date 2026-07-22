@@ -1,12 +1,5 @@
 @use 'mixins' as m;
 
-:host {
-  position: relative;
-  z-index: 1;
-  display: block;
-  padding-block: var(--band);
-}
-
 .step {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);

@@ -15,39 +15,14 @@
 
 /* ---------- left rail ---------------------------------------------------- */
 
-.rail {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.9rem;
-  padding-block-start: 0.5rem;
-}
-
-.rail-index {
-  @include m.label;
-
-  color: var(--pink);
-}
-
+// The rail itself is the shared `.band-rail` from the global stylesheet. Only
+// the drawn line is hero's own — no other section has one to animate.
 .rail-line {
   width: 1px;
   height: clamp(3rem, 9vh, 5.5rem);
   background: var(--rule-strong);
   transform-origin: top;
   scale: 1 0;
-}
-
-.rail-word {
-  @include m.label;
-
-  writing-mode: vertical-rl;
-  letter-spacing: 0.22em;
-}
-
-@media (max-width: 55rem) {
-  .rail {
-    display: none;
-  }
 }
 
 /* ---------- headline ----------------------------------------------------- */

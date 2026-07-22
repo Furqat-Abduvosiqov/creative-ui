@@ -4,8 +4,15 @@
   z-index: 0;
   overflow: clip;
   pointer-events: none;
-  // Own stacking context, so the discs blend against the page ground and not
-  // against whatever happens to be painted underneath the app root.
+  // Blending is bounded by the nearest isolated group, and this layer is one —
+  // both explicitly and by virtue of being positioned with a z-index. So the
+  // discs cannot reach the document background to multiply into it: they need
+  // paper INSIDE the group or they composite flat and the ink reads as a
+  // translucent blob instead of a print.
+  //
+  // Same colour as the body, so this paints over nothing and changes no layout;
+  // it exists purely to give the two inks a stock to sit on.
+  background: var(--paper);
   isolation: isolate;
 }
 

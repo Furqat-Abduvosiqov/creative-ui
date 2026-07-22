@@ -32,6 +32,10 @@
 }
 
 .wordmark {
+  // The bar is 4.5rem tall but the link's own hit box is only as tall as its
+  // line, which is well under the 44px every other link here honours.
+  @include m.tap-target;
+
   display: inline-flex;
   align-items: center;
   gap: 0.34em;

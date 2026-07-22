@@ -15,6 +15,7 @@ interface Discipline {
   styleUrl: './craft.scss',
   host: {
     id: 'craft',
+    class: 'band',
   },
 })
 export class Craft {

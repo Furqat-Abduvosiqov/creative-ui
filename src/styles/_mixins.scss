@@ -49,12 +49,6 @@
   border-radius: var(--radius);
 }
 
-/// Hairline divider drawn as a border so it survives subpixel rounding better
-/// than a 1px pseudo-element.
-@mixin rule($side: block-start) {
-  border-#{$side}: 1px solid var(--rule);
-}
-
 /// Wraps motion that must not run for someone who has asked for less of it.
 @mixin motion-safe {
   @media (prefers-reduced-motion: no-preference) {

@@ -13,7 +13,7 @@
       </p>
     </header>
 
-    <ol class="steps">
+    <ol>
       @for (step of steps; track step.index; let i = $index) {
         <li class="step" [appReveal]="i * 120">
           <div class="marker" aria-hidden="true">

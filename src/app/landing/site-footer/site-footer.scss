@@ -17,6 +17,8 @@
 }
 
 .wordmark {
+  @include m.tap-target;
+
   display: inline-flex;
   align-items: center;
   gap: 0.34em;
