@@ -1,0 +1,1780 @@
+<title>Attest — the authorization record</title>
+
+<style>
+  /* ============================================================
+     ATTEST — "THE LEDGER"
+     Swiss / International typographic style.
+     Rigid 12-column grid, hairline rules, one signal colour.
+     ============================================================ */
+
+  :root {
+    --ground:      #F7F7F5;
+    --paper:       #FFFFFF;
+    --ink:         #111110;
+    --ink-mid:     #5C5C57;
+    --ink-faint:   #8E8E86;
+    --rule:        #D6D6D0;
+    --rule-faint:  #E6E6E1;
+    --signal:      #E23D1E;
+    --signal-wash: #FBE7E1;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:      #141412;
+      --paper:       #1C1C19;
+      --ink:         #EDEDE8;
+      --ink-mid:     #9C9C93;
+      --ink-faint:   #6E6E66;
+      --rule:        #33332E;
+      --rule-faint:  #262622;
+      --signal:      #F2542F;
+      --signal-wash: #33170F;
+    }
+  }
+
+  :root[data-theme="light"] {
+    --ground:      #F7F7F5;
+    --paper:       #FFFFFF;
+    --ink:         #111110;
+    --ink-mid:     #5C5C57;
+    --ink-faint:   #8E8E86;
+    --rule:        #D6D6D0;
+    --rule-faint:  #E6E6E1;
+    --signal:      #E23D1E;
+    --signal-wash: #FBE7E1;
+  }
+
+  :root[data-theme="dark"] {
+    --ground:      #141412;
+    --paper:       #1C1C19;
+    --ink:         #EDEDE8;
+    --ink-mid:     #9C9C93;
+    --ink-faint:   #6E6E66;
+    --rule:        #33332E;
+    --rule-faint:  #262622;
+    --signal:      #F2542F;
+    --signal-wash: #33170F;
+  }
+
+  /* ---------- base ---------- */
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Helvetica Neue", Helvetica, "Inter", system-ui, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    text-align: left;
+  }
+
+  .mono, code, kbd {
+    font-family: ui-monospace, "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "liga" 0;
+  }
+
+  a { color: inherit; }
+
+  :focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 3px;
+  }
+
+  ::selection { background: var(--signal); color: #FFFFFF; }
+
+  /* ---------- the grid ---------- */
+
+  .sheet {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 4vw, 64px);
+    position: relative;
+  }
+
+  /* the visible column rules, painted behind everything */
+  .sheet::before {
+    content: "";
+    position: absolute;
+    inset: 0 clamp(16px, 4vw, 64px);
+    pointer-events: none;
+    z-index: 0;
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--rule-faint) 0 1px,
+      transparent 1px calc(100% / 12)
+    );
+    opacity: .85;
+  }
+
+  @media (max-width: 700px) {
+    .sheet::before {
+      background-image: repeating-linear-gradient(
+        to right,
+        var(--rule-faint) 0 1px,
+        transparent 1px calc(100% / 4)
+      );
+    }
+  }
+
+  .g {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: clamp(12px, 1.6vw, 24px);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ---------- shared type roles ---------- */
+
+  .label {
+    font-size: .6875rem;
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+
+  .lede {
+    font-size: clamp(1.0625rem, 1.5vw, 1.375rem);
+    line-height: 1.42;
+    letter-spacing: -.014em;
+    font-weight: 400;
+    color: var(--ink);
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  p { text-wrap: pretty; }
+
+  .body {
+    font-size: .9375rem;
+    line-height: 1.6;
+    letter-spacing: -.004em;
+    color: var(--ink-mid);
+    margin: 0;
+  }
+
+  .sig { color: var(--signal); }
+
+  /* ---------- register / section chrome ---------- */
+
+  .reg {
+    position: relative;
+    padding-top: 15px;
+    margin-top: clamp(72px, 9vw, 148px);
+  }
+
+  /* the section rule draws itself, once, on entry */
+  .reg::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--ink);
+    transform-origin: left center;
+  }
+
+  /* only hidden when scripting can bring it back */
+  :root.js .reg::before { transform: scaleX(0); }
+
+  :root.js .reg.is-in::before {
+    animation: draw .58s cubic-bezier(.2,.7,.3,1) forwards;
+  }
+
+  .reg-no {
+    grid-column: 1 / 2;
+    font-size: .6875rem;
+    font-weight: 500;
+    letter-spacing: .1em;
+    color: var(--signal);
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    padding-top: 3px;
+  }
+
+  .reg-title {
+    grid-column: 2 / 8;
+    font-size: clamp(1.25rem, 2.1vw, 1.75rem);
+    font-weight: 600;
+    letter-spacing: -.028em;
+    line-height: 1.14;
+    margin: 0;
+  }
+
+  .reg-meta {
+    grid-column: 9 / 13;
+    font-size: .6875rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    padding-top: 5px;
+  }
+
+  @media (max-width: 900px) {
+    .reg-no    { grid-column: 1 / 13; margin-bottom: 8px; }
+    .reg-title { grid-column: 1 / 13; }
+    .reg-meta  { grid-column: 1 / 13; margin-top: 10px; }
+  }
+
+  /* ---------- masthead ---------- */
+
+  .mast {
+    padding: 20px 0 14px;
+    border-bottom: 1px solid var(--ink);
+    align-items: baseline;
+  }
+
+  .mast-name {
+    grid-column: 1 / 4;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    letter-spacing: -.04em;
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    text-decoration: none;
+  }
+
+  .mast-mark {
+    width: 10px; height: 10px;
+    background: var(--signal);
+    display: inline-block;
+    flex: none;
+    transform: translateY(0);
+  }
+
+  .mast-nav {
+    grid-column: 5 / 11;
+    display: flex;
+    gap: clamp(14px, 2.4vw, 34px);
+    flex-wrap: wrap;
+  }
+
+  .mast-nav a {
+    font-size: .75rem;
+    letter-spacing: .04em;
+    color: var(--ink-mid);
+    text-decoration: none;
+    padding: 3px 0;
+    border-bottom: 1px solid transparent;
+    transition: color .15s linear, border-color .15s linear;
+  }
+
+  .mast-nav a:hover { color: var(--ink); border-bottom-color: var(--signal); }
+
+  .mast-issue {
+    grid-column: 11 / 13;
+    font-size: .6875rem;
+    letter-spacing: .06em;
+    color: var(--ink-faint);
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    text-align: left;
+  }
+
+  @media (max-width: 860px) {
+    .mast-name  { grid-column: 1 / 8; }
+    .mast-issue { grid-column: 9 / 13; }
+    .mast-nav   { grid-column: 1 / 13; margin-top: 14px; }
+  }
+
+  /* ---------- hero ---------- */
+
+  .hero { padding-top: clamp(48px, 7vw, 104px); }
+
+  .hero-kicker {
+    grid-column: 1 / 4;
+    padding-top: 8px;
+  }
+
+  .hero-head {
+    grid-column: 4 / 13;
+    margin: 0;
+    font-size: clamp(2.5rem, 6.4vw, 5.25rem);
+    line-height: .96;
+    letter-spacing: -.045em;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+
+  .hero-head em {
+    font-style: normal;
+    font-weight: 400;
+    color: var(--ink-mid);
+  }
+
+  .hero-sub {
+    grid-column: 4 / 9;
+    margin-top: clamp(28px, 3.4vw, 48px);
+  }
+
+  .hero-facts {
+    grid-column: 10 / 13;
+    margin-top: clamp(28px, 3.4vw, 48px);
+    border-top: 1px solid var(--rule);
+  }
+
+  .fact {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--rule-faint);
+    font-size: .75rem;
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+
+  .fact span:first-child { color: var(--ink-faint); }
+  .fact span:last-child  { color: var(--ink); }
+
+  .hero-cta {
+    grid-column: 4 / 13;
+    margin-top: 34px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 900px) {
+    .hero-kicker { grid-column: 1 / 13; margin-bottom: 18px; }
+    .hero-head, .hero-sub, .hero-cta, .hero-facts { grid-column: 1 / 13; }
+    .hero-facts { margin-top: 30px; }
+  }
+
+  /* ---------- buttons ---------- */
+
+  .btn {
+    font: inherit;
+    font-size: .8125rem;
+    font-weight: 500;
+    letter-spacing: -.01em;
+    padding: 11px 20px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 0;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--ground);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background .14s linear, color .14s linear, border-color .14s linear;
+  }
+
+  .btn:hover { background: var(--signal); border-color: var(--signal); color: #FFFFFF; }
+
+  .btn--ghost {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--rule);
+  }
+
+  .btn--ghost:hover { background: transparent; color: var(--signal); border-color: var(--signal); }
+
+  .btn .arw { font-family: ui-monospace, Consolas, monospace; opacity: .7; }
+
+  /* ---------- THE LEDGER ---------- */
+
+  .ledger-wrap {
+    grid-column: 1 / 13;
+    margin-top: clamp(52px, 6vw, 92px);
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    background: var(--paper);
+  }
+
+  .ledger-cap {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .ledger-cap b {
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+
+  .ledger-cap .mono {
+    font-size: .6875rem;
+    color: var(--ink-faint);
+    letter-spacing: .04em;
+  }
+
+  .ledger-scroll { overflow-x: auto; }
+
+  .ledger {
+    width: 100%;
+    min-width: 940px;
+    border-collapse: collapse;
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: .75rem;
+    line-height: 1.4;
+  }
+
+  .ledger th {
+    text-align: left;
+    font-weight: 500;
+    font-size: .625rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+
+  .ledger td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--rule-faint);
+    vertical-align: top;
+    white-space: nowrap;
+  }
+
+  .ledger tr:last-child td { border-bottom: 0; }
+
+  .ledger tbody tr { transition: background .12s linear; }
+  .ledger tbody tr:hover { background: var(--signal-wash); }
+
+  .h-cur { color: var(--ink); font-weight: 500; }
+  .seq { color: var(--signal); }
+
+  /* prev points at the row above — the chain, made legible */
+  .h-prev { color: var(--ink-faint); }
+
+  .h-prev::before {
+    content: "\2191";
+    display: inline-block;
+    width: 1.1em;
+    color: var(--signal);
+  }
+
+  .ledger tbody tr:first-child .h-prev::before { color: var(--ink-faint); }
+
+  .prin { color: var(--ink); }
+  .prin small {
+    display: block;
+    font-size: .6875rem;
+    color: var(--ink-faint);
+    letter-spacing: 0;
+    margin-top: 2px;
+  }
+
+  .dec {
+    font-weight: 500;
+    letter-spacing: .04em;
+  }
+  .dec--allow { color: var(--ink); }
+  .dec--deny  { color: var(--signal); }
+  .dec--step  { color: var(--ink-mid); }
+
+  .link-col { position: relative; width: 26px; padding-left: 0 !important; padding-right: 0 !important; }
+
+  .link-col i {
+    display: block;
+    width: 1px;
+    height: 100%;
+    min-height: 22px;
+    background: var(--rule);
+    margin: 0 auto;
+  }
+
+  .ledger-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 12px 14px;
+    border-top: 1px solid var(--rule);
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: .6875rem;
+    color: var(--ink-faint);
+  }
+
+  .verify-mark {
+    color: var(--signal);
+    font-weight: 600;
+    letter-spacing: .06em;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .verify-mark::before {
+    content: "";
+    width: 7px; height: 7px;
+    background: var(--signal);
+    display: inline-block;
+  }
+
+  .ledger-note {
+    grid-column: 1 / 6;
+    margin-top: 16px;
+  }
+
+  .ledger-legend {
+    grid-column: 7 / 13;
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0 24px;
+  }
+
+  .ledger-legend div {
+    display: flex;
+    gap: 10px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--rule-faint);
+    font-size: .6875rem;
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    color: var(--ink-mid);
+  }
+
+  .ledger-legend b { color: var(--ink); font-weight: 500; flex: none; }
+
+  @media (max-width: 900px) {
+    .ledger-note, .ledger-legend { grid-column: 1 / 13; }
+    .ledger-legend { grid-template-columns: 1fr; margin-top: 4px; }
+  }
+
+  /* ---------- pillars ---------- */
+
+  .pillars { margin-top: 42px; }
+
+  .pillar {
+    grid-column: span 4;
+    border-top: 1px solid var(--rule);
+    padding-top: 16px;
+  }
+
+  .pillar-no {
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: .6875rem;
+    letter-spacing: .1em;
+    color: var(--signal);
+    display: block;
+    margin-bottom: 26px;
+  }
+
+  .pillar h3 {
+    margin: 0 0 12px;
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -.024em;
+    line-height: 1.2;
+  }
+
+  .pillar p { margin: 0 0 20px; }
+
+  .spec {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--rule-faint);
+  }
+
+  .spec li {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--rule-faint);
+    font-size: .6875rem;
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    color: var(--ink-mid);
+    letter-spacing: .01em;
+  }
+
+  .spec li b { color: var(--ink); font-weight: 500; }
+  .spec li span { color: var(--ink-faint); white-space: nowrap; }
+
+  @media (max-width: 900px) {
+    .pillar { grid-column: 1 / 13; margin-top: 30px; }
+    .pillar:first-of-type { margin-top: 0; }
+    .pillar-no { margin-bottom: 14px; }
+  }
+
+  /* ---------- code ---------- */
+
+  .code-intro { grid-column: 2 / 8; margin-top: 34px; }
+
+  .code-tabs {
+    grid-column: 1 / 13;
+    margin-top: 34px;
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--rule);
+    flex-wrap: wrap;
+  }
+
+  .code-tab {
+    font: inherit;
+    font-size: .6875rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-weight: 500;
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    color: var(--ink-faint);
+    padding: 11px 18px 9px 0;
+    margin-right: 26px;
+    min-height: 44px;
+    cursor: pointer;
+    transition: color .14s linear, border-color .14s linear;
+  }
+
+  .code-tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--signal); }
+  .code-tab:hover { color: var(--ink); }
+
+  .code-panel { grid-column: 1 / 13; }
+  .code-panel[hidden] { display: none; }
+
+  .code-frame {
+    border-bottom: 1px solid var(--ink);
+    background: var(--paper);
+  }
+
+  .code-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--rule);
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: .6875rem;
+    color: var(--ink-faint);
+    letter-spacing: .04em;
+  }
+
+  .code-head b { color: var(--ink); font-weight: 500; }
+
+  pre {
+    margin: 0;
+    padding: 18px 14px 22px;
+    overflow-x: auto;
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: .78125rem;
+    line-height: 1.75;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    tab-size: 2;
+  }
+
+  pre .c  { color: var(--ink-faint); }              /* comment */
+  pre .k  { color: var(--ink); font-weight: 600; }  /* keyword */
+  pre .s  { color: var(--ink-mid); }                /* string  */
+  pre .n  { color: var(--ink-mid); }                /* number  */
+  pre .p  { color: var(--ink-faint); }              /* punct   */
+  pre .f  { color: var(--ink); }                    /* fn/ident*/
+  pre .hl { color: var(--signal); font-weight: 600;}/* signal  */
+
+  .code-note {
+    grid-column: 1 / 7;
+    margin-top: 14px;
+  }
+
+  @media (max-width: 900px) {
+    .code-intro, .code-note { grid-column: 1 / 13; }
+  }
+
+  /* ---------- policy / export ---------- */
+
+  .pol-lede { grid-column: 2 / 8; margin-top: 34px; }
+
+  .pol-grid { margin-top: 44px; }
+
+  .pol-a { grid-column: 1 / 7; }
+  .pol-b { grid-column: 8 / 13; }
+
+  .pol-a .code-frame { border-top: 1px solid var(--ink); }
+
+  .export {
+    border-top: 1px solid var(--ink);
+  }
+
+  .export-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px 16px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--rule);
+    align-items: baseline;
+  }
+
+  .export-row b {
+    font-size: .875rem;
+    font-weight: 500;
+    letter-spacing: -.012em;
+  }
+
+  .export-row .mono {
+    font-size: .6875rem;
+    color: var(--ink-faint);
+    letter-spacing: .04em;
+    white-space: nowrap;
+  }
+
+  .export-row p {
+    grid-column: 1 / 3;
+    margin: 4px 0 0;
+    font-size: .8125rem;
+    line-height: 1.55;
+    color: var(--ink-mid);
+  }
+
+  @media (max-width: 900px) {
+    .pol-lede, .pol-a, .pol-b { grid-column: 1 / 13; }
+    .pol-b { margin-top: 40px; }
+  }
+
+  /* ---------- deployment ---------- */
+
+  .dep-lede { grid-column: 2 / 8; margin-top: 34px; }
+
+  .dep-grid { margin-top: 44px; }
+
+  .dep {
+    grid-column: span 3;
+    border-top: 1px solid var(--rule);
+    padding-top: 14px;
+  }
+
+  .dep h4 {
+    margin: 0 0 8px;
+    font-size: .9375rem;
+    font-weight: 600;
+    letter-spacing: -.02em;
+  }
+
+  .dep p {
+    margin: 0 0 14px;
+    font-size: .8125rem;
+    line-height: 1.55;
+    color: var(--ink-mid);
+  }
+
+  .dep .mono {
+    font-size: .6875rem;
+    color: var(--ink-faint);
+    display: block;
+    letter-spacing: .02em;
+  }
+
+  .dep-cmd {
+    grid-column: 1 / 13;
+    margin-top: 48px;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    background: var(--paper);
+    padding: 16px 14px;
+    overflow-x: auto;
+  }
+
+  .dep-cmd code {
+    font-size: .8125rem;
+    white-space: pre;
+    display: block;
+    line-height: 1.9;
+  }
+
+  .dep-cmd .pfx { color: var(--signal); }
+  .dep-cmd .out { color: var(--ink-faint); }
+
+  @media (max-width: 1000px) {
+    .dep { grid-column: span 6; }
+  }
+  @media (max-width: 700px) {
+    .dep { grid-column: 1 / 13; margin-top: 26px; }
+    .dep-lede { grid-column: 1 / 13; }
+  }
+
+  /* ---------- migration line ---------- */
+
+  .mig {
+    grid-column: 1 / 13;
+    margin-top: clamp(64px, 8vw, 120px);
+    border-top: 1px solid var(--ink);
+    padding-top: 18px;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: clamp(12px, 1.6vw, 24px);
+  }
+
+  .mig p {
+    grid-column: 2 / 10;
+    margin: 0;
+    font-size: clamp(1rem, 1.7vw, 1.375rem);
+    line-height: 1.4;
+    letter-spacing: -.02em;
+    font-weight: 400;
+  }
+
+  .mig span { grid-column: 1 / 2; }
+
+  @media (max-width: 900px) {
+    .mig p { grid-column: 1 / 13; margin-top: 10px; }
+    .mig span { grid-column: 1 / 13; }
+  }
+
+  /* ---------- footer ---------- */
+
+  footer {
+    margin-top: clamp(72px, 9vw, 140px);
+    border-top: 2px solid var(--ink);
+    padding: 22px 0 64px;
+  }
+
+  .foot-name {
+    grid-column: 1 / 3;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    letter-spacing: -.04em;
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+  }
+
+  .foot-col { grid-column: span 2; }
+
+  .foot-col h5 {
+    margin: 0 0 12px;
+    font-size: .625rem;
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .foot-col a {
+    display: block;
+    font-size: .8125rem;
+    color: var(--ink-mid);
+    text-decoration: none;
+    padding: 4px 0;
+    letter-spacing: -.006em;
+    transition: color .14s linear;
+  }
+
+  .foot-col a:hover { color: var(--signal); }
+
+  .foot-legal {
+    grid-column: 1 / 13;
+    margin-top: 56px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: clamp(12px, 1.6vw, 24px);
+  }
+
+  .foot-legal p {
+    grid-column: 1 / 8;
+    margin: 0;
+    font-size: .6875rem;
+    line-height: 1.6;
+    color: var(--ink-faint);
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    letter-spacing: .01em;
+  }
+
+  .foot-legal .mono-r {
+    grid-column: 10 / 13;
+    margin: 0;
+    font-size: .6875rem;
+    color: var(--ink-faint);
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+
+  @media (max-width: 900px) {
+    .foot-name { grid-column: 1 / 13; margin-bottom: 30px; }
+    .foot-col  { grid-column: span 6; margin-bottom: 22px; }
+    .foot-legal p, .foot-legal .mono-r { grid-column: 1 / 13; }
+    .foot-legal .mono-r { margin-top: 12px; }
+  }
+
+  /* ---------- motion: severe, minimal ---------- */
+
+  @keyframes draw { to { transform: scaleX(1); } }
+
+  .rise {
+    opacity: 0;
+    animation: rise .44s cubic-bezier(.2,.7,.3,1) forwards;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(9px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .d1 { animation-delay: .05s; }
+  .d2 { animation-delay: .12s; }
+  .d3 { animation-delay: .19s; }
+  .d4 { animation-delay: .26s; }
+  .d5 { animation-delay: .33s; }
+  .d6 { animation-delay: .40s; }
+
+  /* the one quiet loop: the live-tail caret */
+  .tail::after {
+    content: "\2588";
+    color: var(--signal);
+    margin-left: 6px;
+    animation: blink 1.9s steps(1) infinite;
+  }
+
+  @keyframes blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .001ms !important;
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important;
+      transition-delay: 0ms !important;
+      scroll-behavior: auto !important;
+    }
+    :root.js .reg::before,
+    :root.js .reg.is-in::before { transform: none; }
+    .rise { opacity: 1; }
+  }
+
+  /* ---------- design-review appendix ---------- */
+
+  .dvp-switch {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 90;
+    display: flex;
+    border: 1px solid var(--ink);
+    background: var(--ground);
+  }
+
+  .dvp-switch button {
+    font: inherit;
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: .625rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    min-height: 44px;
+    min-width: 52px;
+    padding: 0 14px;
+    background: transparent;
+    color: var(--ink-mid);
+    border: 0;
+    cursor: pointer;
+    transition: background .14s linear, color .14s linear;
+  }
+
+  .dvp-switch button + button { border-left: 1px solid var(--rule); }
+
+  .dvp-switch button[aria-pressed="true"] {
+    background: var(--ink);
+    color: var(--ground);
+  }
+
+  .dvp {
+    margin-top: clamp(64px, 8vw, 120px);
+    border-top: 1px solid var(--rule);
+    padding: 18px 0 96px;
+  }
+
+  .dvp h2 {
+    grid-column: 1 / 13;
+    margin: 0 0 4px;
+    font-size: .6875rem;
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .dvp > p {
+    grid-column: 1 / 7;
+    margin: 0 0 24px;
+    font-size: .75rem;
+    color: var(--ink-faint);
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+
+  .dvp-sw {
+    grid-column: span 3;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--rule-faint);
+    font-size: .6875rem;
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+
+  .dvp-sw b { font-weight: 500; color: var(--ink); }
+  .dvp-sw code { margin-left: auto; color: var(--ink-faint); text-transform: uppercase; }
+
+  .dvp-chip {
+    width: 26px;
+    height: 26px;
+    flex: none;
+    border: 1px solid var(--rule);
+    display: inline-block;
+  }
+
+  @media (max-width: 1000px) { .dvp-sw { grid-column: span 6; } }
+  @media (max-width: 620px)  { .dvp-sw { grid-column: 1 / 13; } .dvp > p { grid-column: 1 / 13; } }
+</style>
+
+<div class="sheet">
+
+  <!-- ============ MASTHEAD ============ -->
+  <header class="g mast">
+    <a class="mast-name" href="#top"><span class="mast-mark" aria-hidden="true"></span>Attest</a>
+    <nav class="mast-nav" aria-label="Primary">
+      <a href="#ledger">The record</a>
+      <a href="#pillars">Capabilities</a>
+      <a href="#integrate">Integration</a>
+      <a href="#policy">Policy &amp; export</a>
+      <a href="#deploy">Self-hosting</a>
+    </nav>
+    <div class="mast-issue mono">REL 4.2.0<br>2026-07-22</div>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <section class="g hero" id="top">
+    <p class="label hero-kicker rise d1">Identity &amp; authorization<br>Register edition</p>
+
+    <h1 class="hero-head rise d2">Every decision,<br>written down.<br><em>In order. For good.</em></h1>
+
+    <p class="lede hero-sub rise d3">
+      Attest is a self-hostable identity and authorization platform. It issues the tokens, evaluates
+      the policy, and answers the question every audit eventually asks — who was allowed to do what,
+      when, and on whose authority. Each answer is an entry in a hash-chained record you can verify
+      yourself, offline, without asking us.
+    </p>
+
+    <div class="hero-facts rise d4">
+      <div class="fact"><span>Entries written</span><span>3,481,902,774</span></div>
+      <div class="fact"><span>Chain breaks</span><span>0</span></div>
+      <div class="fact"><span>Median decision</span><span>2.8 ms</span></div>
+      <div class="fact"><span>Tenants isolated</span><span>1,204</span></div>
+      <div class="fact"><span>Licence</span><span>Apache 2.0</span></div>
+    </div>
+
+    <div class="hero-cta rise d5">
+      <a class="btn" href="#deploy">Run it yourself <span class="arw" aria-hidden="true">&#8594;</span></a>
+      <a class="btn btn--ghost" href="#ledger">Read the record</a>
+    </div>
+  </section>
+
+  <!-- ============ 01 — THE LEDGER ============ -->
+  <section id="ledger">
+    <div class="g reg">
+      <p class="reg-no mono">&sect; 01</p>
+      <h2 class="reg-title">The authorization record</h2>
+      <p class="reg-meta">Append-only<br>SHA-256 chained</p>
+    </div>
+
+    <div class="g">
+      <div class="ledger-wrap rise d1">
+        <div class="ledger-cap">
+          <b>Register of decisions &mdash; tenant <span class="sig">nordwerk-prod</span></b>
+          <span class="mono tail">live tail, block 8,204,113</span>
+        </div>
+
+        <div class="ledger-scroll" tabindex="0" role="region" aria-label="Hash-chained decision ledger, scrollable">
+          <table class="ledger">
+            <thead>
+              <tr>
+                <th scope="col">Seq</th>
+                <th scope="col">Entry hash</th>
+                <th scope="col" class="link-col" aria-label="Chain link"></th>
+                <th scope="col">Prev</th>
+                <th scope="col">Recorded (UTC)</th>
+                <th scope="col">Principal</th>
+                <th scope="col">Action &amp; resource</th>
+                <th scope="col">Decision</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="seq">8204109</td>
+                <td class="h-cur" id="hash-a">4f19c2e0a7d3</td>
+                <td class="link-col"><i aria-hidden="true"></i></td>
+                <td class="h-prev">b0c7d4915ae2</td>
+                <td>2026-07-22 09:14:02.118</td>
+                <td class="prin">usr_01J9F2K<small>e.varga &mdash; password + WebAuthn</small></td>
+                <td>payroll.export &middot; org/nordwerk/eu</td>
+                <td class="dec dec--allow">ALLOW</td>
+              </tr>
+              <tr>
+                <td class="seq">8204110</td>
+                <td class="h-cur">9a3b81f5c604</td>
+                <td class="link-col"><i aria-hidden="true"></i></td>
+                <td class="h-prev">4f19c2e0a7d3</td>
+                <td>2026-07-22 09:14:02.884</td>
+                <td class="prin">svc_LEDGER_SYNC<small>m2m &mdash; client_credentials</small></td>
+                <td>records.append &middot; ledger/eu-central</td>
+                <td class="dec dec--allow">ALLOW</td>
+              </tr>
+              <tr>
+                <td class="seq">8204111</td>
+                <td class="h-cur">c7e40d2b1f88</td>
+                <td class="link-col"><i aria-hidden="true"></i></td>
+                <td class="h-prev">9a3b81f5c604</td>
+                <td>2026-07-22 09:14:06.401</td>
+                <td class="prin">agt_CLAIMS_TRIAGE<small>MCP agent &mdash; delegated by usr_01J9F2K</small></td>
+                <td>claims.read &middot; case/44-19052</td>
+                <td class="dec dec--allow">ALLOW</td>
+              </tr>
+              <tr>
+                <td class="seq">8204112</td>
+                <td class="h-cur">e51f907ac3d6</td>
+                <td class="link-col"><i aria-hidden="true"></i></td>
+                <td class="h-prev">c7e40d2b1f88</td>
+                <td>2026-07-22 09:14:06.470</td>
+                <td class="prin">agt_CLAIMS_TRIAGE<small>MCP agent &mdash; scope exceeded</small></td>
+                <td>claims.settle &middot; case/44-19052</td>
+                <td class="dec dec--deny">DENY</td>
+              </tr>
+              <tr>
+                <td class="seq">8204113</td>
+                <td class="h-cur" id="hash-live">&nbsp;</td>
+                <td class="link-col"><i aria-hidden="true"></i></td>
+                <td class="h-prev">e51f907ac3d6</td>
+                <td>2026-07-22 09:14:11.037</td>
+                <td class="prin">usr_01J9F2K<small>risk 0.71 &mdash; new ASN, unusual hour</small></td>
+                <td>payroll.export &middot; org/nordwerk/eu</td>
+                <td class="dec dec--step">STEP&#8209;UP</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="ledger-foot">
+          <span class="verify-mark">CHAIN VERIFIED &mdash; 8,204,113 / 8,204,113 ENTRIES</span>
+          <span>Root anchored hourly &middot; last anchor 09:00:00Z &middot; witness quorum 3 of 5</span>
+        </div>
+      </div>
+
+      <p class="body ledger-note rise d3">
+        Each entry commits to the one before it. Change a decision after the fact and every hash
+        downstream stops matching, which is the point: the record is not a log you trust, it is a
+        structure you check. The verifier is a single static binary and it never phones home.
+      </p>
+
+      <div class="ledger-legend rise d4">
+        <div><b>ALLOW</b> <span>policy satisfied, token minted</span></div>
+        <div><b>DENY</b> <span>outside the granted scope</span></div>
+        <div><b>STEP-UP</b> <span>risk score crossed the tenant threshold</span></div>
+        <div><b>prev</b> <span>hash of the preceding entry</span></div>
+        <div><b>agt_</b> <span>agent principal, always delegated</span></div>
+        <div><b>svc_</b> <span>machine principal, no human owner</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 02 — PILLARS ============ -->
+  <section id="pillars">
+    <div class="g reg">
+      <p class="reg-no mono">&sect; 02</p>
+      <h2 class="reg-title">Three things it does</h2>
+      <p class="reg-meta">One binary<br>One database</p>
+    </div>
+
+    <div class="g pillars">
+      <article class="pillar rise d1">
+        <span class="pillar-no">02.1</span>
+        <h3>Authorization other<br>companies build on</h3>
+        <p class="body">
+          Standards-complete, not standards-adjacent. OIDC and OAuth 2.1 with PKCE and DPoP, SAML 2.0
+          for the systems that still require it, SCIM 2.0 for provisioning that stays in step. Policy
+          is fine-grained and relationship-aware, so a rule can say "the reviewer assigned to this case"
+          rather than "anyone in the reviewers group". Tenants are isolated at the storage layer, not by
+          a WHERE clause.
+        </p>
+        <ul class="spec">
+          <li><b>OIDC / OAuth 2.1</b> <span>PKCE, DPoP, PAR</span></li>
+          <li><b>SAML 2.0</b> <span>SP + IdP</span></li>
+          <li><b>SCIM 2.0</b> <span>push + pull</span></li>
+          <li><b>Policy</b> <span>ReBAC + ABAC</span></li>
+          <li><b>API keys</b> <span>prefix-scoped</span></li>
+          <li><b>M2M tokens</b> <span>client_credentials</span></li>
+        </ul>
+      </article>
+
+      <article class="pillar rise d2">
+        <span class="pillar-no">02.2</span>
+        <h3>Analysis of the<br>record itself</h3>
+        <p class="body">
+          The chain is a dense, well-structured account of behaviour, so read it. Attest scores every
+          decision for risk against the principal's own history, flags the sequences that do not fit,
+          and lets an operator ask in plain language: which agents touched settlement data outside
+          business hours last quarter. The answer arrives as a filtered slice of the register with
+          entry hashes attached, so it can be checked rather than believed.
+        </p>
+        <ul class="spec">
+          <li><b>Risk score</b> <span>per decision</span></li>
+          <li><b>Anomaly model</b> <span>runs in-cluster</span></li>
+          <li><b>Plain-language query</b> <span>returns entries</span></li>
+          <li><b>Baselines</b> <span>per principal</span></li>
+          <li><b>Thresholds</b> <span>tenant-defined</span></li>
+          <li><b>Training data</b> <span>never leaves</span></li>
+        </ul>
+      </article>
+
+      <article class="pillar rise d3">
+        <span class="pillar-no">02.3</span>
+        <h3>Agents as<br>real principals</h3>
+        <p class="body">
+          An AI agent is not a shared service account and should never borrow one. Attest issues an
+          MCP agent its own identity, delegated from a named human, narrowed to specific tools and
+          resources, and expiring on a schedule the grantor sets. Every tool call the agent makes is an
+          entry in the same register as everything else. Revocation is one call and takes effect on the
+          next decision, not at the next token refresh.
+        </p>
+        <ul class="spec">
+          <li><b>MCP</b> <span>server + client</span></li>
+          <li><b>Delegation</b> <span>human-rooted</span></li>
+          <li><b>Scope</b> <span>per tool, per resource</span></li>
+          <li><b>Budget</b> <span>calls and lifetime</span></li>
+          <li><b>Audit</b> <span>every invocation</span></li>
+          <li><b>Revoke</b> <span>effective immediately</span></li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============ 03 — INTEGRATION ============ -->
+  <section id="integrate">
+    <div class="g reg">
+      <p class="reg-no mono">&sect; 03</p>
+      <h2 class="reg-title">Integration</h2>
+      <p class="reg-meta">Two calls<br>Both recorded</p>
+    </div>
+
+    <div class="g">
+      <p class="lede code-intro rise d1">
+        The same verification path serves a human session and an agent grant. What differs is who the
+        subject is and how narrow the scope was cut.
+      </p>
+
+      <div class="code-tabs rise d2" role="tablist" aria-label="Code examples">
+        <button class="code-tab" id="tab-oidc" role="tab" aria-selected="true" aria-controls="panel-oidc" type="button">03.1 &nbsp;OIDC verification</button>
+        <button class="code-tab" id="tab-mcp" role="tab" aria-selected="false" aria-controls="panel-mcp" tabindex="-1" type="button">03.2 &nbsp;MCP agent grant</button>
+      </div>
+
+      <div class="code-panel rise d3" id="panel-oidc" role="tabpanel" aria-labelledby="tab-oidc">
+        <div class="code-frame">
+          <div class="code-head">
+            <b>server/session.ts</b>
+            <span>TypeScript &middot; @attest/verify 4.2.0</span>
+          </div>
+<pre><code><span class="c">// Verify an access token against the tenant's published JWKS.</span>
+<span class="c">// Nothing here talks to Attest at request time — the keys are cached,</span>
+<span class="c">// the decision is local, and the entry is written asynchronously.</span>
+
+<span class="k">import</span> <span class="p">{</span> <span class="f">createVerifier</span> <span class="p">}</span> <span class="k">from</span> <span class="s">"@attest/verify"</span><span class="p">;</span>
+
+<span class="k">const</span> <span class="f">attest</span> <span class="p">=</span> <span class="f">createVerifier</span><span class="p">({</span>
+  issuer<span class="p">:</span>   <span class="s">"https://auth.nordwerk.example/realms/prod"</span><span class="p">,</span>
+  audience<span class="p">:</span> <span class="s">"payroll-api"</span><span class="p">,</span>
+  jwks<span class="p">:</span>     <span class="s">"https://auth.nordwerk.example/.well-known/jwks.json"</span><span class="p">,</span>
+  clockToleranceSec<span class="p">:</span> <span class="n">5</span><span class="p">,</span>
+  requireDpop<span class="p">:</span> <span class="k">true</span><span class="p">,</span>
+<span class="p">});</span>
+
+<span class="k">export async function</span> <span class="f">session</span><span class="p">(</span>req<span class="p">:</span> Request<span class="p">)</span> <span class="p">{</span>
+  <span class="k">const</span> claims <span class="p">=</span> <span class="k">await</span> attest<span class="p">.</span><span class="f">verify</span><span class="p">(</span>req<span class="p">.</span>headers<span class="p">.</span><span class="f">get</span><span class="p">(</span><span class="s">"authorization"</span><span class="p">));</span>
+
+  <span class="k">const</span> decision <span class="p">=</span> <span class="k">await</span> attest<span class="p">.</span><span class="f">check</span><span class="p">({</span>
+    subject<span class="p">:</span>  claims<span class="p">.</span>sub<span class="p">,</span>              <span class="c">// usr_01J9F2K</span>
+    action<span class="p">:</span>   <span class="s">"payroll.export"</span><span class="p">,</span>
+    resource<span class="p">:</span> <span class="s">"org/nordwerk/eu"</span><span class="p">,</span>
+  <span class="p">});</span>
+
+  <span class="c">// Every check returns the register entry it produced.</span>
+  <span class="c">// decision.entry.hash → </span><span class="hl">4f19c2e0a7d3</span>
+  <span class="c">// decision.entry.prev → b0c7d4915ae2</span>
+
+  <span class="k">if</span> <span class="p">(</span>decision<span class="p">.</span>effect <span class="p">===</span> <span class="s">"STEP_UP"</span><span class="p">)</span> <span class="k">return</span> <span class="f">challenge</span><span class="p">(</span>decision<span class="p">.</span>risk<span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span>decision<span class="p">.</span>effect <span class="p">!==</span> <span class="s">"ALLOW"</span><span class="p">)</span> <span class="k">return</span> <span class="f">forbidden</span><span class="p">(</span>decision<span class="p">.</span>entry<span class="p">.</span>hash<span class="p">);</span>
+
+  <span class="k">return</span> <span class="p">{</span> user<span class="p">:</span> claims<span class="p">.</span>sub<span class="p">,</span> entry<span class="p">:</span> decision<span class="p">.</span>entry<span class="p">.</span>hash <span class="p">};</span>
+<span class="p">}</span></code></pre>
+        </div>
+      </div>
+
+      <div class="code-panel rise d3" id="panel-mcp" role="tabpanel" aria-labelledby="tab-mcp" hidden>
+        <div class="code-frame">
+          <div class="code-head">
+            <b>grants/claims-triage.http</b>
+            <span>HTTP &middot; Attest Admin API v1</span>
+          </div>
+<pre><code><span class="c"># Grant an MCP agent a narrow, delegated, expiring identity.</span>
+<span class="c"># The grantor is a human. There is no other kind of root.</span>
+
+<span class="k">POST</span> <span class="f">/api/v1/agent-grants</span> <span class="p">HTTP/1.1</span>
+<span class="p">Host:</span> auth.nordwerk.example
+<span class="p">Authorization:</span> DPoP <span class="s">&lt;admin access token&gt;</span>
+<span class="p">Idempotency-Key:</span> <span class="s">01J9F2KQ7X4M8ZC3</span>
+<span class="p">Content-Type:</span> application/json
+
+<span class="p">{</span>
+  <span class="s">"agent"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s">"name"</span><span class="p">:</span>      <span class="s">"claims-triage"</span><span class="p">,</span>
+    <span class="s">"transport"</span><span class="p">:</span> <span class="s">"mcp/streamable-http"</span>
+  <span class="p">},</span>
+  <span class="s">"delegated_by"</span><span class="p">:</span> <span class="s">"usr_01J9F2K"</span><span class="p">,</span>          <span class="c">// named human, always</span>
+  <span class="s">"tools"</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span> <span class="s">"tool"</span><span class="p">:</span> <span class="s">"claims.read"</span><span class="p">,</span>    <span class="s">"resource"</span><span class="p">:</span> <span class="s">"case/44-*"</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s">"tool"</span><span class="p">:</span> <span class="s">"claims.comment"</span><span class="p">,</span> <span class="s">"resource"</span><span class="p">:</span> <span class="s">"case/44-*"</span> <span class="p">}</span>
+  <span class="p">],</span>
+  <span class="s">"budget"</span><span class="p">:</span> <span class="p">{</span> <span class="s">"calls"</span><span class="p">:</span> <span class="n">500</span><span class="p">,</span> <span class="s">"ttl"</span><span class="p">:</span> <span class="s">"PT4H"</span> <span class="p">},</span>
+  <span class="s">"on_scope_exceeded"</span><span class="p">:</span> <span class="s">"deny_and_record"</span>
+<span class="p">}</span>
+
+<span class="c">--- 201 Created ---------------------------------------------</span>
+
+<span class="p">{</span>
+  <span class="s">"agent_id"</span><span class="p">:</span>    <span class="s">"agt_CLAIMS_TRIAGE"</span><span class="p">,</span>
+  <span class="s">"expires_at"</span><span class="p">:</span>  <span class="s">"2026-07-22T13:14:06Z"</span><span class="p">,</span>
+  <span class="s">"revoke"</span><span class="p">:</span>      <span class="s">"DELETE /api/v1/agent-grants/agt_CLAIMS_TRIAGE"</span><span class="p">,</span>
+  <span class="s">"entry"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s">"seq"</span><span class="p">:</span>  <span class="n">8204107</span><span class="p">,</span>
+    <span class="s">"hash"</span><span class="p">:</span> <span class="s">"</span><span class="hl">a20d6b4f83c1</span><span class="s">"</span><span class="p">,</span>
+    <span class="s">"prev"</span><span class="p">:</span> <span class="s">"77ce1a05d9b3"</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c"># The grant itself is an entry. So is its revocation.</span>
+<span class="c"># So is every tool call made under it.</span></code></pre>
+        </div>
+      </div>
+
+      <p class="body code-note rise d4">
+        Verification is local and offline-capable; only the resulting entries are shipped to the
+        register. If Attest is unreachable, checks continue against the cached policy bundle and the
+        entries queue in order, with the chain closed on reconnect.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 04 — POLICY & EXPORT ============ -->
+  <section id="policy">
+    <div class="g reg">
+      <p class="reg-no mono">&sect; 04</p>
+      <h2 class="reg-title">Policy, and getting the record out</h2>
+      <p class="reg-meta">Versioned<br>Portable</p>
+    </div>
+
+    <div class="g">
+      <p class="lede pol-lede rise d1">
+        Policy is text under version control, reviewed like any other change. Exports are complete
+        enough that an auditor can verify them without an Attest instance running.
+      </p>
+    </div>
+
+    <div class="g pol-grid">
+      <div class="pol-a rise d2">
+        <div class="code-frame">
+          <div class="code-head">
+            <b>policy/payroll.attest</b>
+            <span>Signed &middot; rev 41 &middot; author m.okonkwo</span>
+          </div>
+<pre><code><span class="c"># Relationship-aware. No group is a substitute for a fact.</span>
+
+<span class="k">type</span> <span class="f">org</span> <span class="p">{</span>
+  <span class="k">relation</span> member<span class="p">,</span> controller<span class="p">,</span> auditor
+<span class="p">}</span>
+
+<span class="k">type</span> <span class="f">payroll_run</span> <span class="p">{</span>
+  <span class="k">relation</span> owner<span class="p">:</span> org<span class="p">#</span>controller
+
+  <span class="k">permit</span> export <span class="k">when</span> <span class="p">(</span>
+    owner
+    <span class="k">and</span> subject<span class="p">.</span>mfa_age <span class="p">&lt;</span> <span class="n">15</span>m
+    <span class="k">and</span> subject<span class="p">.</span>risk <span class="p">&lt;=</span> <span class="n">0.60</span>
+  <span class="p">)</span>
+
+  <span class="k">step_up</span> export <span class="k">when</span> subject<span class="p">.</span>risk <span class="p">&gt;</span> <span class="n">0.60</span>
+
+  <span class="c"># Agents never settle money.</span>
+  <span class="k">deny</span> export <span class="k">when</span> subject<span class="p">.</span>kind <span class="p">==</span> <span class="s">"agent"</span>
+<span class="p">}</span></code></pre>
+        </div>
+      </div>
+
+      <div class="pol-b rise d3">
+        <p class="label" style="margin-bottom:14px;">Export formats</p>
+        <div class="export">
+          <div class="export-row">
+            <b>Verifiable segment</b>
+            <span class="mono">.attestseg</span>
+            <p>A contiguous run of entries with its Merkle path and the witness signatures for the
+              period. Verifies standalone against the published root.</p>
+          </div>
+          <div class="export-row">
+            <b>Auditor bundle</b>
+            <span class="mono">CSV + JSONL</span>
+            <p>Flat, human-readable, one row per decision, with the entry hash preserved so any row
+              can be traced back into the chain.</p>
+          </div>
+          <div class="export-row">
+            <b>SIEM stream</b>
+            <span class="mono">CEF / OTLP</span>
+            <p>Continuous forward to an existing pipeline. The forward is itself recorded, including
+              which fields were redacted on the way out.</p>
+          </div>
+          <div class="export-row">
+            <b>Subject dossier</b>
+            <span class="mono">GDPR Art. 15</span>
+            <p>Everything the register holds about one principal, assembled on request, with a
+              deletion path that tombstones rather than rewrites.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 05 — DEPLOYMENT ============ -->
+  <section id="deploy">
+    <div class="g reg">
+      <p class="reg-no mono">&sect; 05</p>
+      <h2 class="reg-title">Where it runs</h2>
+      <p class="reg-meta">Your metal<br>Your keys</p>
+    </div>
+
+    <div class="g">
+      <p class="lede dep-lede rise d1">
+        One static binary, one PostgreSQL database, no external dependency at decision time. The
+        control plane and the register can sit in different failure domains, or the same one.
+      </p>
+    </div>
+
+    <div class="g dep-grid">
+      <article class="dep rise d1">
+        <h4>Single node</h4>
+        <p>The binary, Postgres, and a certificate. Suitable up to roughly 2,000 decisions per second
+          on four cores.</p>
+        <span class="mono">binary &middot; 48 MB &middot; no runtime</span>
+      </article>
+
+      <article class="dep rise d2">
+        <h4>Kubernetes</h4>
+        <p>Helm chart and an operator that handles key rotation, schema migration, and rolling the
+          register readers independently.</p>
+        <span class="mono">helm &middot; operator &middot; CRDs</span>
+      </article>
+
+      <article class="dep rise d3">
+        <h4>Air-gapped</h4>
+        <p>Full offline install with a signed image bundle. Witness anchoring degrades to an internal
+          quorum with no loss of verifiability.</p>
+        <span class="mono">offline bundle &middot; internal quorum</span>
+      </article>
+
+      <article class="dep rise d4">
+        <h4>Managed</h4>
+        <p>Operated by us in a region you pick, on the identical build. The escape hatch is a plain
+          database dump plus your keys.</p>
+        <span class="mono">same binary &middot; exit on request</span>
+      </article>
+
+      <div class="dep-cmd rise d5" tabindex="0" role="region" aria-label="Installation commands, scrollable">
+<code><span class="pfx">$</span> attest init --realm prod --db postgres://localhost/attest
+<span class="out">  schema 41 applied · signing key generated · root anchored</span>
+
+<span class="pfx">$</span> attest verify --from 8204109 --to 8204113
+<span class="out">  5 entries · 5 links checked · <span class="sig">chain intact</span> · witness quorum 3/5</span>
+
+<span class="pfx">$</span> attest export segment --period 2026-07 --out july.attestseg
+<span class="out">  61,004,882 entries · 2.1 GB · merkle root 0x7fd3…a91c</span></code>
+      </div>
+    </div>
+
+    <div class="g">
+      <div class="mig">
+        <span class="label">Migration</span>
+        <p>
+          Importers read existing realms, clients, mappers, and group structures from Keycloak or Okta
+          and replay them into a new Attest realm, entry by entry &mdash; so the record starts on the
+          day you move, not the day you finish.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <div class="g">
+      <div class="foot-name"><span class="mast-mark" aria-hidden="true"></span>Attest</div>
+
+      <div class="foot-col">
+        <h5>Product</h5>
+        <a href="#pillars">Authorization</a>
+        <a href="#pillars">Analytics</a>
+        <a href="#pillars">Agent identity</a>
+        <a href="#policy">Policy language</a>
+      </div>
+
+      <div class="foot-col">
+        <h5>Reference</h5>
+        <a href="#integrate">API</a>
+        <a href="#integrate">SDKs</a>
+        <a href="#ledger">Chain format</a>
+        <a href="#policy">Export schemas</a>
+      </div>
+
+      <div class="foot-col">
+        <h5>Operate</h5>
+        <a href="#deploy">Install</a>
+        <a href="#deploy">Upgrade</a>
+        <a href="#deploy">Key rotation</a>
+        <a href="#deploy">Air-gapped</a>
+      </div>
+
+      <div class="foot-col">
+        <h5>Register</h5>
+        <a href="#top">Changelog</a>
+        <a href="#top">Advisories</a>
+        <a href="#top">Witness roster</a>
+        <a href="#top">Root anchors</a>
+      </div>
+
+      <div class="foot-col">
+        <h5>Licence</h5>
+        <a href="#top">Apache 2.0</a>
+        <a href="#top">Source</a>
+        <a href="#top">Trademark</a>
+        <a href="#top">Security</a>
+      </div>
+
+      <div class="foot-legal">
+        <p>
+          Attest is a fictional product created for a design exercise; all figures, hashes,
+          identifiers, timestamps and quoted capabilities on this page are illustrative and do not
+          describe a real service.
+        </p>
+        <p class="mono-r">REL 4.2.0<br>Register edition<br>2026</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============ DESIGN-REVIEW PALETTE ============ -->
+  <section class="g dvp">
+    <h2>Palette tokens</h2>
+    <p>Values read from the live stylesheet at runtime.</p>
+
+    <div class="dvp-sw" data-token="--ground"><span class="dvp-chip" style="background: var(--ground)"></span><b>--ground</b><code></code></div>
+    <div class="dvp-sw" data-token="--paper"><span class="dvp-chip" style="background: var(--paper)"></span><b>--paper</b><code></code></div>
+    <div class="dvp-sw" data-token="--ink"><span class="dvp-chip" style="background: var(--ink)"></span><b>--ink</b><code></code></div>
+    <div class="dvp-sw" data-token="--ink-mid"><span class="dvp-chip" style="background: var(--ink-mid)"></span><b>--ink-mid</b><code></code></div>
+    <div class="dvp-sw" data-token="--ink-faint"><span class="dvp-chip" style="background: var(--ink-faint)"></span><b>--ink-faint</b><code></code></div>
+    <div class="dvp-sw" data-token="--rule"><span class="dvp-chip" style="background: var(--rule)"></span><b>--rule</b><code></code></div>
+    <div class="dvp-sw" data-token="--rule-faint"><span class="dvp-chip" style="background: var(--rule-faint)"></span><b>--rule-faint</b><code></code></div>
+    <div class="dvp-sw" data-token="--signal"><span class="dvp-chip" style="background: var(--signal)"></span><b>--signal</b><code></code></div>
+    <div class="dvp-sw" data-token="--signal-wash"><span class="dvp-chip" style="background: var(--signal-wash)"></span><b>--signal-wash</b><code></code></div>
+  </section>
+
+</div>
+
+<div class="dvp-switch" role="group" aria-label="Colour theme">
+  <button type="button" data-mode="light" aria-pressed="true">Light</button>
+  <button type="button" data-mode="dark" aria-pressed="false">Dark</button>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var root = document.documentElement;
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  // gates the CSS that hides content until it is animated in
+  root.classList.add("js");
+
+  /* ---------- theme switch ---------- */
+
+  var buttons = Array.prototype.slice.call(
+    document.querySelectorAll(".dvp-switch button")
+  );
+
+  function currentMode() {
+    if (root.dataset.theme === "dark" || root.dataset.theme === "light") {
+      return root.dataset.theme;
+    }
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+
+  function paintSwatches() {
+    var computed = getComputedStyle(root);
+    var swatches = document.querySelectorAll(".dvp-sw");
+
+    Array.prototype.forEach.call(swatches, function (sw) {
+      var token = sw.getAttribute("data-token");
+      var code = sw.querySelector("code");
+      if (!token || !code) return;
+      code.textContent = computed.getPropertyValue(token).trim();
+    });
+  }
+
+  function apply(mode) {
+    root.dataset.theme = mode;
+
+    buttons.forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-mode") === mode));
+    });
+
+    // let the cascade settle before reading computed values
+    requestAnimationFrame(paintSwatches);
+  }
+
+  buttons.forEach(function (b) {
+    b.addEventListener("click", function () {
+      apply(b.getAttribute("data-mode"));
+    });
+  });
+
+  apply(currentMode());
+
+  /* ---------- code tabs ---------- */
+
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".code-tab"));
+
+  function selectTab(tab) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute("aria-selected", String(on));
+      t.tabIndex = on ? 0 : -1;
+
+      var panel = document.getElementById(t.getAttribute("aria-controls"));
+      if (!panel) return;
+      panel.hidden = !on;
+
+      // a panel revealed after load never intersected the observer,
+      // so settle its entrance rather than leaving it at opacity 0
+      if (on) {
+        panel.style.animation = "none";
+        panel.style.opacity = "1";
+      }
+    });
+  }
+
+  tabs.forEach(function (tab, i) {
+    tab.addEventListener("click", function () { selectTab(tab); });
+
+    tab.addEventListener("keydown", function (e) {
+      var next = null;
+      if (e.key === "ArrowRight") next = tabs[(i + 1) % tabs.length];
+      if (e.key === "ArrowLeft") next = tabs[(i - 1 + tabs.length) % tabs.length];
+      if (!next) return;
+      e.preventDefault();
+      selectTab(next);
+      next.focus();
+    });
+  });
+
+  /* ---------- the hash that resolves, once ---------- */
+
+  var live = document.getElementById("hash-live");
+  var FINAL = "2d6ba48f01e7";
+  var GLYPHS = "0123456789abcdef";
+
+  function settleHash() {
+    if (!live) return;
+
+    if (reduce.matches) {
+      live.textContent = FINAL;
+      return;
+    }
+
+    var settled = 0;
+    var frame = 0;
+
+    var timer = setInterval(function () {
+      frame++;
+
+      var out = "";
+      for (var i = 0; i < FINAL.length; i++) {
+        out += i < settled ? FINAL.charAt(i)
+                           : GLYPHS.charAt(Math.floor(Math.random() * 16));
+      }
+      live.textContent = out;
+
+      if (frame % 3 === 0) settled++;
+
+      if (settled > FINAL.length) {
+        live.textContent = FINAL;
+        clearInterval(timer);
+      }
+    }, 34);
+  }
+
+  /* ---------- entrances, observed once ---------- */
+
+  var animated = document.querySelectorAll(".rise");
+  var rules = document.querySelectorAll(".reg");
+
+  if (!("IntersectionObserver" in window) || reduce.matches) {
+    Array.prototype.forEach.call(animated, function (el) {
+      el.style.animation = "none";
+      el.style.opacity = "1";
+    });
+    Array.prototype.forEach.call(rules, function (el) { el.classList.add("is-in"); });
+    settleHash();
+  } else {
+    Array.prototype.forEach.call(animated, function (el) {
+      el.style.animationPlayState = "paused";
+    });
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        entry.target.style.animationPlayState = "running";
+        io.unobserve(entry.target);
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.05 });
+
+    Array.prototype.forEach.call(animated, function (el) { io.observe(el); });
+
+    var ruleIo = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-in");
+        ruleIo.unobserve(entry.target);
+      });
+    }, { rootMargin: "0px 0px -6% 0px", threshold: 0.1 });
+
+    Array.prototype.forEach.call(rules, function (el) { ruleIo.observe(el); });
+
+    var hashSeen = false;
+    var hashIo = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting || hashSeen) return;
+        hashSeen = true;
+        setTimeout(settleHash, 420);
+        hashIo.disconnect();
+      });
+    }, { threshold: 0.2 });
+
+    if (live) hashIo.observe(live);
+  }
+})();
+</script>

@@ -1,0 +1,1676 @@
+<title>Signet — identity, sealed</title>
+
+<style>
+  /* ─────────────────────────────────────────────────────────────
+     SIGNET — direction A, "The Seal"
+     Dark-first. Warm near-black ground, burnished bronze accent,
+     one muted slate for state and data only.
+     ───────────────────────────────────────────────────────────── */
+
+  :root {
+    --ground:      #14100E;
+    --ground-2:    #1B1512;
+    --ground-3:    #221A15;
+    --ink:         #EFE7DB;
+    --ink-2:       #B4A79A;
+    --ink-3:       #877A6E;
+    --rule:        #33281F;
+    --rule-soft:   #241C17;
+    --bronze:      #C08A4A;
+    --bronze-lift: #D8A669;
+    --bronze-dim:  #7C5828;
+    --slate:       #8098B2;
+    --slate-dim:   #47596E;
+    --seal-fill:   #1D1611;
+
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+
+    --pad: clamp(1.25rem, 5vw, 4rem);
+    --max: 76rem;
+    --ease: cubic-bezier(.22, .68, .16, 1);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --ground:      #EDE4D3;
+      --ground-2:    #E5DAC5;
+      --ground-3:    #DCCFB6;
+      --ink:         #211810;
+      --ink-2:       #54463A;
+      --ink-3:       #6B5B49;
+      --rule:        #C6B49A;
+      --rule-soft:   #D8CAB2;
+      --bronze:      #96602A;
+      --bronze-lift: #7C4E1F;
+      --bronze-dim:  #B98D53;
+      --slate:       #47607A;
+      --slate-dim:   #8A9AAB;
+      --seal-fill:   #E7DCC6;
+    }
+  }
+
+  :root[data-theme="light"] {
+    --ground:      #EDE4D3;
+    --ground-2:    #E5DAC5;
+    --ground-3:    #DCCFB6;
+    --ink:         #211810;
+    --ink-2:       #54463A;
+    --ink-3:       #6B5B49;
+    --rule:        #C6B49A;
+    --rule-soft:   #D8CAB2;
+    --bronze:      #96602A;
+    --bronze-lift: #7C4E1F;
+    --bronze-dim:  #B98D53;
+    --slate:       #47607A;
+    --slate-dim:   #8A9AAB;
+    --seal-fill:   #E7DCC6;
+  }
+
+  :root[data-theme="dark"] {
+    --ground:      #14100E;
+    --ground-2:    #1B1512;
+    --ground-3:    #221A15;
+    --ink:         #EFE7DB;
+    --ink-2:       #B4A79A;
+    --ink-3:       #877A6E;
+    --rule:        #33281F;
+    --rule-soft:   #241C17;
+    --bronze:      #C08A4A;
+    --bronze-lift: #D8A669;
+    --bronze-dim:  #7C5828;
+    --slate:       #8098B2;
+    --slate-dim:   #47596E;
+    --seal-fill:   #1D1611;
+  }
+
+  /* ── base ───────────────────────────────────────────────────── */
+
+  html {
+    background: var(--ground);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 1rem;
+    line-height: 1.6;
+    overflow-x: hidden;
+    font-synthesis-weight: none;
+  }
+
+  ::selection {
+    background: var(--bronze);
+    color: var(--ground);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--bronze);
+    outline-offset: 3px;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: var(--max);
+    margin: 0 auto;
+    padding-inline: var(--pad);
+    box-sizing: border-box;
+  }
+
+  .lbl {
+    font-family: var(--mono);
+    font-size: .6875rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .lbl-b { color: var(--bronze); }
+
+  .rule { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+
+  h1, h2, h3, h4 {
+    font-family: var(--serif);
+    font-weight: 400;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  p { margin: 0; }
+
+  /* ── header ─────────────────────────────────────────────────── */
+
+  .top {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: color-mix(in srgb, var(--ground) 92%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .top-in {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    min-height: 4.25rem;
+  }
+
+  .mark {
+    display: flex;
+    align-items: center;
+    gap: .625rem;
+    margin-right: auto;
+  }
+
+  .mark-name {
+    font-family: var(--serif);
+    font-size: 1.0625rem;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    padding-left: .06em;
+  }
+
+  .nav {
+    display: none;
+    gap: 1.75rem;
+  }
+
+  .nav a {
+    font-family: var(--mono);
+    font-size: .6875rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    padding: .5rem 0;
+    border-bottom: 1px solid transparent;
+    transition: color 120ms var(--ease), border-color 120ms var(--ease);
+  }
+
+  .nav a:hover { color: var(--ink); border-bottom-color: var(--bronze); }
+
+  @media (min-width: 62rem) {
+    .nav { display: flex; }
+  }
+
+  /* ── buttons ────────────────────────────────────────────────── */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    min-height: 2.875rem;
+    padding: 0 1.25rem;
+    font-family: var(--mono);
+    font-size: .6875rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    border: 1px solid var(--bronze);
+    background: transparent;
+    color: var(--bronze);
+    cursor: pointer;
+    transition: background-color 110ms var(--ease), color 110ms var(--ease), border-color 110ms var(--ease);
+  }
+
+  .btn:hover { background: var(--bronze); color: var(--ground); }
+
+  .btn-solid {
+    background: var(--bronze);
+    color: var(--ground);
+    border-color: var(--bronze);
+  }
+
+  .btn-solid:hover { background: var(--bronze-lift); border-color: var(--bronze-lift); }
+
+  .btn-quiet {
+    border-color: var(--rule);
+    color: var(--ink);
+  }
+
+  .btn-quiet:hover { background: transparent; color: var(--bronze); border-color: var(--bronze); }
+
+  .btn-sm { min-height: 2.5rem; padding: 0 .875rem; }
+
+  /* ── hero ───────────────────────────────────────────────────── */
+
+  .hero { padding: clamp(3rem, 8vw, 6.5rem) 0 0; }
+
+  .hero-grid {
+    display: grid;
+    gap: clamp(2.5rem, 6vw, 4rem);
+    align-items: start;
+  }
+
+  @media (min-width: 62rem) {
+    .hero-grid { grid-template-columns: minmax(0, 1.35fr) minmax(0, .8fr); gap: 4.5rem; }
+  }
+
+  .hero-eyebrow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem 1rem;
+    align-items: baseline;
+    padding-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.75rem, 7.4vw, 5.125rem);
+    line-height: .98;
+    letter-spacing: -.028em;
+    max-width: 14ch;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--bronze);
+  }
+
+  .hero-sub {
+    max-width: 54ch;
+    margin-top: 1.75rem;
+    font-size: clamp(1rem, 1.6vw, 1.125rem);
+    line-height: 1.65;
+    color: var(--ink-2);
+  }
+
+  .hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    margin-top: 2.25rem;
+  }
+
+  .hero-note {
+    margin-top: 1.5rem;
+    max-width: 46ch;
+  }
+
+  /* ── seal ───────────────────────────────────────────────────── */
+
+  .seal-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .seal {
+    width: min(100%, 20rem);
+    height: auto;
+    display: block;
+  }
+
+  /* Font on an SVG <text> is set here rather than via a presentation
+     attribute: var() inside a presentation attribute is not dependable, and a
+     silent fallback would take the seal — the whole hero — with it. A real CSS
+     declaration also outranks any attribute still on the element. */
+  .seal text { font-family: var(--mono); }
+  .seal .seal-glyph { font-family: var(--serif); }
+
+  .seal-ring { animation: seal-set 720ms var(--ease) both; }
+
+  @keyframes seal-set {
+    from { opacity: 0; transform: scale(.965); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .attest {
+    width: min(100%, 24rem);
+    border: 1px solid var(--rule);
+    background: var(--ground-2);
+    padding: 1rem 1.125rem 1.125rem;
+    box-sizing: border-box;
+  }
+
+  .attest-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: .75rem;
+    margin-bottom: .75rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .attest dl {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    gap: .4rem .75rem;
+    margin: 0;
+    font-family: var(--mono);
+    font-size: .75rem;
+    line-height: 1.45;
+  }
+
+  .attest dt {
+    color: var(--ink-3);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-size: .625rem;
+    padding-top: .14rem;
+  }
+
+  .attest dd {
+    margin: 0;
+    color: var(--slate);
+    overflow-wrap: anywhere;
+  }
+
+  .attest dd b { color: var(--ink); font-weight: 400; }
+
+  /* ── standards strip ────────────────────────────────────────── */
+
+  .standards {
+    margin-top: clamp(3rem, 7vw, 5rem);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .standards ul {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .standards li {
+    padding: .9rem 1.5rem .9rem 0;
+    margin-right: 1.5rem;
+    border-right: 1px solid var(--rule-soft);
+    font-family: var(--mono);
+    font-size: .6875rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  .standards li:last-child { border-right: 0; margin-right: 0; }
+
+  /* ── section scaffolding ────────────────────────────────────── */
+
+  .sect { padding: clamp(3.5rem, 8vw, 6rem) 0; }
+
+  .sect-head {
+    display: grid;
+    gap: 1.25rem;
+    max-width: 60rem;
+    padding-bottom: clamp(2rem, 5vw, 3rem);
+  }
+
+  .sect-head h2 {
+    font-size: clamp(1.875rem, 4vw, 3rem);
+    line-height: 1.06;
+    letter-spacing: -.022em;
+    max-width: 20ch;
+  }
+
+  .sect-head p {
+    max-width: 58ch;
+    color: var(--ink-2);
+  }
+
+  /* ── clauses (the three pillars) ────────────────────────────── */
+
+  .clause {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    padding: clamp(2.25rem, 5vw, 3.5rem) 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .clause:last-of-type { border-bottom: 1px solid var(--rule); }
+
+  @media (min-width: 52rem) {
+    .clause {
+      grid-template-columns: 9rem minmax(0, 1fr);
+      gap: clamp(2rem, 5vw, 4rem);
+    }
+  }
+
+  .clause-no {
+    font-family: var(--serif);
+    font-size: 2.25rem;
+    line-height: 1;
+    color: var(--bronze);
+    letter-spacing: -.02em;
+  }
+
+  .clause-no span {
+    display: block;
+    margin-top: .625rem;
+    font-family: var(--mono);
+    font-size: .625rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .clause h3 {
+    font-size: clamp(1.5rem, 3vw, 2.125rem);
+    line-height: 1.12;
+    letter-spacing: -.02em;
+    max-width: 22ch;
+  }
+
+  .clause-lead {
+    margin-top: 1rem;
+    max-width: 60ch;
+    color: var(--ink-2);
+  }
+
+  .specs {
+    display: grid;
+    gap: 0;
+    margin-top: 2rem;
+    border-top: 1px solid var(--rule-soft);
+  }
+
+  @media (min-width: 44rem) {
+    .specs { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(1.5rem, 4vw, 3rem); }
+  }
+
+  .spec {
+    padding: 1.05rem 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  .spec h4 {
+    font-family: var(--mono);
+    font-size: .6875rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--bronze);
+    font-weight: 400;
+  }
+
+  .spec p {
+    margin-top: .4rem;
+    font-size: .9375rem;
+    color: var(--ink-2);
+    max-width: 46ch;
+  }
+
+  /* ── ledger table ───────────────────────────────────────────── */
+
+  .scroller {
+    overflow-x: auto;
+    margin-top: 2rem;
+    border: 1px solid var(--rule);
+    background: var(--ground-2);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: .75rem;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  caption {
+    text-align: left;
+    padding: .875rem 1rem;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: .625rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  th {
+    text-align: left;
+    font-weight: 400;
+    font-size: .625rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: .7rem 1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  td {
+    padding: .7rem 1rem;
+    border-bottom: 1px solid var(--rule-soft);
+    color: var(--ink-2);
+  }
+
+  tbody tr:last-child td { border-bottom: 0; }
+
+  td.principal { color: var(--slate); }
+  td.plain { white-space: normal; min-width: 18rem; color: var(--ink); }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .15rem .5rem;
+    border: 1px solid currentColor;
+    font-size: .625rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  .chip-hi   { color: var(--bronze); background: color-mix(in srgb, var(--bronze) 12%, transparent); }
+  .chip-mid  { color: var(--slate); }
+  .chip-lo   { color: var(--ink-3); }
+
+  /* ── code ───────────────────────────────────────────────────── */
+
+  .code-shell {
+    border: 1px solid var(--rule);
+    background: var(--ground-2);
+  }
+
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .tab {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    border-right: 1px solid var(--rule);
+    border-bottom: 2px solid transparent;
+    color: var(--ink-3);
+    font-family: var(--mono);
+    font-size: .6875rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    padding: .9rem 1.125rem;
+    cursor: pointer;
+    transition: color 110ms var(--ease), border-color 110ms var(--ease), background-color 110ms var(--ease);
+  }
+
+  .tab:hover { color: var(--ink); }
+
+  .tab[aria-selected="true"] {
+    color: var(--bronze);
+    border-bottom-color: var(--bronze);
+    background: var(--ground-3);
+  }
+
+  .panel { display: none; }
+  .panel[data-open="true"] { display: block; }
+
+  pre {
+    margin: 0;
+    padding: 1.25rem clamp(1rem, 3vw, 1.75rem) 1.5rem;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: .8125rem;
+    line-height: 1.72;
+    color: var(--ink);
+    tab-size: 2;
+  }
+
+  code { font-family: inherit; }
+
+  .c-cm { color: var(--ink-3); font-style: italic; }
+  .c-kw { color: var(--bronze); }
+  .c-st { color: var(--slate); }
+  .c-nu { color: var(--slate); }
+  .c-fn { color: var(--ink); }
+  .c-pn { color: var(--ink-3); }
+  .c-id { color: var(--ink-2); }
+
+  .code-foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem 1.5rem;
+    padding: .875rem clamp(1rem, 3vw, 1.75rem);
+    border-top: 1px solid var(--rule);
+  }
+
+  /* ── deploy ─────────────────────────────────────────────────── */
+
+  .deploy-grid {
+    display: grid;
+    gap: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  @media (min-width: 58rem) {
+    .deploy-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-items: start; }
+  }
+
+  .facts {
+    display: grid;
+    border-top: 1px solid var(--rule);
+  }
+
+  .fact {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: .3rem;
+    padding: 1.05rem 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  @media (min-width: 30rem) {
+    .fact { grid-template-columns: 8.5rem minmax(0, 1fr); gap: 1.25rem; align-items: baseline; }
+  }
+
+  .fact p { color: var(--ink-2); font-size: .9375rem; max-width: 44ch; }
+  .fact p b { color: var(--ink); font-weight: 600; }
+
+  .shell {
+    border: 1px solid var(--rule);
+    background: var(--ground-2);
+  }
+
+  .shell-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .8rem 1.125rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .migrate {
+    margin-top: 2rem;
+    padding: 1.25rem 1.375rem;
+    border: 1px solid var(--rule);
+    border-left: 1px solid var(--rule);
+    background: var(--ground-2);
+  }
+
+  .migrate p { margin-top: .5rem; color: var(--ink-2); font-size: .9375rem; max-width: 52ch; }
+
+  /* ── trust strip ────────────────────────────────────────────── */
+
+  .trust {
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    background: var(--ground-2);
+  }
+
+  .trust-grid {
+    display: grid;
+    gap: 0;
+  }
+
+  @media (min-width: 40rem) {
+    .trust-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (min-width: 68rem) {
+    .trust-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+
+  .trust-item {
+    padding: clamp(1.75rem, 4vw, 2.5rem) clamp(1.25rem, 3vw, 2rem);
+    border-bottom: 1px solid var(--rule);
+    border-right: 1px solid var(--rule);
+  }
+
+  .trust-item h3 {
+    margin-top: .75rem;
+    font-size: 1.25rem;
+    letter-spacing: -.01em;
+  }
+
+  .trust-item p {
+    margin-top: .5rem;
+    font-size: .875rem;
+    color: var(--ink-2);
+    max-width: 34ch;
+  }
+
+  /* ── closing ────────────────────────────────────────────────── */
+
+  .close {
+    padding: clamp(4rem, 10vw, 7rem) 0;
+    display: grid;
+    gap: 2rem;
+    justify-items: start;
+  }
+
+  .close h2 {
+    font-size: clamp(2rem, 5.4vw, 3.75rem);
+    line-height: 1.02;
+    letter-spacing: -.026em;
+    max-width: 17ch;
+  }
+
+  .close p { max-width: 50ch; color: var(--ink-2); }
+
+  /* ── footer ─────────────────────────────────────────────────── */
+
+  .foot {
+    border-top: 1px solid var(--rule);
+    padding: clamp(2.5rem, 6vw, 4rem) 0 3rem;
+  }
+
+  .foot-grid {
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  @media (min-width: 48rem) {
+    .foot-grid { grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr)); gap: 2rem; }
+  }
+
+  .foot h4 { font-family: var(--mono); font-size: .625rem; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-3); font-weight: 400; }
+
+  .foot ul { list-style: none; margin: .9rem 0 0; padding: 0; display: grid; gap: .55rem; }
+
+  .foot li a {
+    font-size: .875rem;
+    color: var(--ink-2);
+    border-bottom: 1px solid transparent;
+    transition: color 110ms var(--ease), border-color 110ms var(--ease);
+  }
+
+  .foot li a:hover { color: var(--ink); border-bottom-color: var(--bronze); }
+
+  .foot-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem 2rem;
+    justify-content: space-between;
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .disclaimer { max-width: 62ch; color: var(--ink-3); font-size: .75rem; line-height: 1.6; }
+
+  /* ── motion ─────────────────────────────────────────────────── */
+
+  .rv { opacity: 0; transform: translateY(9px); }
+
+  .rv.set {
+    opacity: 1;
+    transform: none;
+    transition: opacity 220ms var(--ease), transform 260ms var(--ease);
+  }
+
+  .lift { animation: lift 520ms var(--ease) both; }
+
+  @keyframes lift {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .d1 { animation-delay: 60ms; }
+  .d2 { animation-delay: 120ms; }
+  .d3 { animation-delay: 180ms; }
+  .d4 { animation-delay: 240ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * , *::before, *::after {
+      animation-duration: 1ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 1ms !important;
+    }
+
+    .rv { opacity: 1; transform: none; }
+  }
+</style>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a class="mark" href="#top" aria-label="Signet, home">
+      <svg width="26" height="26" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+        <circle cx="20" cy="20" r="18.5" stroke="var(--bronze)" stroke-width="1"/>
+        <circle cx="20" cy="20" r="15" stroke="var(--bronze)" stroke-width="1" stroke-dasharray="1 4.2"/>
+        <circle cx="20" cy="20" r="10.5" fill="var(--seal-fill)" stroke="var(--bronze)" stroke-width="1"/>
+        <path d="M20 12.5v15M14.5 16.5h11M14.5 23.5h11" stroke="var(--bronze)" stroke-width="1" stroke-linecap="round" opacity=".85"/>
+      </svg>
+      <span class="mark-name">Signet</span>
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      <a href="#authorization">Authorization</a>
+      <a href="#analytics">Analytics</a>
+      <a href="#agents">Agents</a>
+      <a href="#integrate">Integrate</a>
+      <a href="#deploy">Deploy</a>
+    </nav>
+
+    <a class="btn btn-sm btn-quiet" href="#integrate">Docs</a>
+    <a class="btn btn-sm btn-solid" href="#deploy">Deploy</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ── HERO ─────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-eyebrow lift">
+        <span class="lbl lbl-b">Signet Platform</span>
+        <span class="lbl">Specification rev. 4.1 · self-hosted · Apache 2.0 core</span>
+      </div>
+
+      <div class="hero-grid">
+        <div>
+          <h1 class="lift d1">Every access decision, <em>sealed</em> and accountable.</h1>
+
+          <p class="hero-sub lift d2">
+            Signet is an identity and authorization platform you run yourself. It issues the tokens your
+            product trusts, exposes standards-complete authentication to the companies integrating with
+            you, and treats an AI agent as a principal in its own right — scoped, expiring, revocable, and
+            recorded against the human who delegated it.
+          </p>
+
+          <div class="hero-cta lift d3">
+            <a class="btn btn-solid" href="#deploy">Deploy in your cluster</a>
+            <a class="btn btn-quiet" href="#integrate">Read the integration spec</a>
+          </div>
+
+          <p class="lbl hero-note lift d3">
+            One binary and one Postgres database · no outbound calls · median token verification 0.9 ms
+          </p>
+        </div>
+
+        <div class="seal-col">
+          <svg class="seal seal-ring" viewBox="0 0 260 260" role="img" aria-label="The Signet seal: a bronze emblem reading Signet, authorized, sealed, audited.">
+            <defs>
+              <path id="sealArc" d="M130 130 m -92 0 a 92 92 0 1 1 184 0 a 92 92 0 1 1 -184 0"/>
+            </defs>
+
+            <circle cx="130" cy="130" r="124" fill="none" stroke="var(--bronze)" stroke-width="1" opacity=".55"/>
+            <circle cx="130" cy="130" r="118" fill="none" stroke="var(--bronze)" stroke-width="2"/>
+            <circle cx="130" cy="130" r="109" fill="none" stroke="var(--bronze)" stroke-width="3" stroke-dasharray="1.5 6.6" opacity=".8"/>
+
+            <text font-family="var(--mono)" font-size="10.5" letter-spacing="4.4" fill="var(--bronze)" opacity=".95">
+              <textPath href="#sealArc" startOffset="1%">SIGNET · AUTHORIZED · SEALED · AUDITED · REVOCABLE · </textPath>
+            </text>
+
+            <circle cx="130" cy="130" r="74" fill="var(--seal-fill)" stroke="var(--bronze)" stroke-width="1"/>
+            <circle cx="130" cy="130" r="68" fill="none" stroke="var(--bronze)" stroke-width="1" opacity=".45"/>
+            <circle cx="130" cy="130" r="60" fill="none" stroke="var(--bronze)" stroke-width="1" opacity=".22"/>
+            <circle cx="130" cy="130" r="52" fill="none" stroke="var(--bronze)" stroke-width="1" opacity=".14"/>
+
+            <text class="seal-glyph" x="130" y="139" text-anchor="middle" font-size="72" fill="var(--bronze)" letter-spacing="-2">S</text>
+            <path d="M96 158h68" stroke="var(--bronze)" stroke-width="1" opacity=".6"/>
+            <text x="130" y="176" text-anchor="middle" font-family="var(--mono)" font-size="9" letter-spacing="3" fill="var(--ink-3)">9F2C·A41B·77DE</text>
+
+            <path d="M130 12v14M130 234v14M12 130h14M234 130h14" stroke="var(--bronze)" stroke-width="1" opacity=".7"/>
+          </svg>
+
+          <div class="attest lift d4">
+            <div class="attest-head">
+              <span class="lbl lbl-b">Attestation</span>
+              <span class="lbl">Live</span>
+            </div>
+
+            <dl>
+              <dt>Issuer</dt><dd><b>auth.acme.dev</b></dd>
+              <dt>Subject</dt><dd>agent:runbook-copilot</dd>
+              <dt>On behalf of</dt><dd>user:m.arslan</dd>
+              <dt>Scope</dt><dd>billing.invoices:read</dd>
+              <dt>Tenant</dt><dd>acme-eu · residency eu-central</dd>
+              <dt>Expires</dt><dd>in 4 m 51 s</dd>
+              <dt>Seal</dt><dd>ed25519 · 9f2c a41b 77de 0c93</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="standards">
+      <div class="wrap">
+        <ul>
+          <li>OIDC Core 1.0</li>
+          <li>OAuth 2.1</li>
+          <li>SAML 2.0</li>
+          <li>SCIM 2.0</li>
+          <li>WebAuthn L3</li>
+          <li>FAPI 2.0</li>
+          <li>Token exchange RFC 8693</li>
+          <li>MCP 2025-06-18</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PILLARS ──────────────────────────────────────────────── -->
+  <section class="sect" id="authorization">
+    <div class="wrap">
+      <div class="sect-head rv">
+        <span class="lbl lbl-b">Part II · The platform</span>
+        <h2>Three responsibilities, held in one system of record.</h2>
+        <p>
+          Authentication, the evidence it produces, and the machines acting on a person's behalf are the
+          same problem. Splitting them across three vendors is how audit trails go missing. Signet keeps
+          them in one schema, on your infrastructure.
+        </p>
+      </div>
+
+      <article class="clause rv">
+        <div class="clause-no">§&nbsp;I<span>Authorization</span></div>
+
+        <div>
+          <h3>Authorization other companies can integrate against.</h3>
+
+          <p class="clause-lead">
+            Your customers' IT departments will ask for SAML on a Tuesday and SCIM deprovisioning on the
+            Friday. Signet ships both as configuration, per tenant, without a release from your team.
+            Every tenant is isolated at the key, session, and policy level — there is no shared signing key
+            to leak.
+          </p>
+
+          <div class="specs">
+            <div class="spec">
+              <h4>Standards, complete</h4>
+              <p>OIDC discovery, PKCE-only OAuth 2.1, SAML 2.0 in both directions, SCIM 2.0 push and pull,
+                 device and CIBA flows for hardware.</p>
+            </div>
+
+            <div class="spec">
+              <h4>Fine-grained policy</h4>
+              <p>Relationship-based checks evaluated in under a millisecond at the edge, written in a typed
+                 policy language that reviews like code and versions like code.</p>
+            </div>
+
+            <div class="spec">
+              <h4>Tenant isolation</h4>
+              <p>Per-tenant signing keys, issuers, session stores, and branding. A tenant's data never
+                 enters another tenant's query plan.</p>
+            </div>
+
+            <div class="spec">
+              <h4>Machine-to-machine</h4>
+              <p>Client credentials with mTLS or private_key_jwt, sender-constrained tokens, and RFC 8693
+                 exchange when one service must act as another.</p>
+            </div>
+
+            <div class="spec">
+              <h4>API keys that behave</h4>
+              <p>Prefix-indexed lookup, SHA-256 at rest, scoped to a tenant and a route set, rotated on a
+                 schedule you declare rather than remember.</p>
+            </div>
+
+            <div class="spec">
+              <h4>Custom claims</h4>
+              <p>Map organisation, entitlement, and plan into the token at issue time so your services stop
+                 calling back to ask who this is.</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="clause rv" id="analytics">
+        <div class="clause-no">§&nbsp;II<span>Analytics</span></div>
+
+        <div>
+          <h3>An analyst reading the auth stream, continuously.</h3>
+
+          <p class="clause-lead">
+            Every issue, refresh, denial, and tool call lands in one append-only stream. Signet scores that
+            stream for anomalies against each principal's own history — not a generic threat feed — and
+            answers questions about it in plain language. Models run inside your deployment against your
+            store. Nothing is sent anywhere for training.
+          </p>
+
+          <div class="specs">
+            <div class="spec">
+              <h4>Behavioural baselines</h4>
+              <p>Per principal: usual hours, devices, network, and the shape of what it normally reads.
+                 Deviation is measured against that, not against a global average.</p>
+            </div>
+
+            <div class="spec">
+              <h4>Risk as a policy input</h4>
+              <p>A 0–100 score published back onto the token and readable from policy, so a risky session
+                 can be stepped up rather than merely reported.</p>
+            </div>
+
+            <div class="spec">
+              <h4>Questions, not queries</h4>
+              <p>Ask "which service accounts read customer records outside business hours last week" and
+                 get rows, with the generated query shown so you can check the work.</p>
+            </div>
+
+            <div class="spec">
+              <h4>Evidence on demand</h4>
+              <p>Any answer exports as a signed, timestamped extract of the underlying audit records — the
+                 form an auditor will actually accept.</p>
+            </div>
+          </div>
+
+          <div class="scroller">
+            <table>
+              <caption>Risk ledger · tenant acme-eu · last 24 hours</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Time</th>
+                  <th scope="col">Principal</th>
+                  <th scope="col">Observation</th>
+                  <th scope="col">Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>02:14</td>
+                  <td class="principal">svc:etl-nightly</td>
+                  <td class="plain">4,210 customer records read — 38× the nightly baseline</td>
+                  <td><span class="chip chip-hi">82 · act</span></td>
+                </tr>
+                <tr>
+                  <td>09:03</td>
+                  <td class="principal">agent:runbook-copilot</td>
+                  <td class="plain">Requested a scope outside its grant; refused at the policy layer</td>
+                  <td><span class="chip chip-mid">55 · watch</span></td>
+                </tr>
+                <tr>
+                  <td>11:47</td>
+                  <td class="principal">user:m.arslan</td>
+                  <td class="plain">New device, known network, passkey presented</td>
+                  <td><span class="chip chip-lo">21 · normal</span></td>
+                </tr>
+                <tr>
+                  <td>16:22</td>
+                  <td class="principal">client:partner-portal</td>
+                  <td class="plain">Client credentials replayed from a second address within 90 seconds</td>
+                  <td><span class="chip chip-hi">77 · act</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </article>
+
+      <article class="clause rv" id="agents">
+        <div class="clause-no">§&nbsp;III<span>Agent identity</span></div>
+
+        <div>
+          <h3>An agent is a principal, not a shared key in a config file.</h3>
+
+          <p class="clause-lead">
+            Signet is an MCP authorization server. An agent connecting to your tools presents a grant, not
+            a static credential: issued to that agent, delegated by a named human, narrowed to specific
+            tools and arguments, expiring in minutes, and revocable in one call. Every tool invocation is
+            recorded against all three identities — agent, delegator, tenant.
+          </p>
+
+          <div class="specs">
+            <div class="spec">
+              <h4>Per-tool authorization</h4>
+              <p>Policy evaluates the tool name and its arguments, so read_invoice and refund_invoice are
+                 separate decisions rather than one connection.</p>
+            </div>
+
+            <div class="spec">
+              <h4>Delegation on the record</h4>
+              <p>An agent can never hold authority its delegator lacks. Remove the human's role and the
+                 agent's next call fails, with the reason logged.</p>
+            </div>
+
+            <div class="spec">
+              <h4>Revocation that lands</h4>
+              <p>Grants are short-lived and refresh through Signet, so a revoked agent stops at its next
+                 tool call — typically under a second, never a cache lifetime.</p>
+            </div>
+
+            <div class="spec">
+              <h4>Audited invocation</h4>
+              <p>Tool name, arguments hash, decision, latency, and the policy clause that decided it —
+                 written to the same hash-chained log as human sign-ins.</p>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ── INTEGRATION ──────────────────────────────────────────── -->
+  <section class="sect" id="integrate">
+    <div class="wrap">
+      <div class="sect-head rv">
+        <span class="lbl lbl-b">Part III · Integration</span>
+        <h2>Two SDK calls for a person. Two more for an agent.</h2>
+        <p>
+          The verification path and the delegation path use the same primitives, so the code your team
+          already reviewed covers the agent case as well. Below: verifying an inbound token, minting a
+          scoped agent grant, and the policy that adjudicates both.
+        </p>
+      </div>
+
+      <div class="code-shell rv">
+        <div class="tabs" role="tablist" aria-label="Integration examples">
+          <button class="tab" role="tab" id="tab-oidc" aria-controls="panel-oidc" aria-selected="true" data-target="panel-oidc" type="button">require-scope.ts</button>
+          <button class="tab" role="tab" id="tab-agent" aria-controls="panel-agent" aria-selected="false" data-target="panel-agent" type="button">agent-grant.ts</button>
+          <button class="tab" role="tab" id="tab-policy" aria-controls="panel-policy" aria-selected="false" data-target="panel-policy" type="button">invoices.signet</button>
+        </div>
+
+        <div class="panel" id="panel-oidc" role="tabpanel" aria-labelledby="tab-oidc" data-open="true" tabindex="0">
+<pre><code><span class="c-cm">// Resource server. Verifies any Signet principal: user, service, or agent.</span>
+<span class="c-kw">import</span> { Signet } <span class="c-kw">from</span> <span class="c-st">"@signet/verify"</span>;
+
+<span class="c-kw">const</span> <span class="c-id">signet</span> = Signet.<span class="c-fn">fromIssuer</span>(<span class="c-st">"https://auth.acme.dev"</span>, {
+  audience: <span class="c-st">"api://billing"</span>,
+  jwks:     { cache: <span class="c-st">"15m"</span>, rotate: <span class="c-st">"auto"</span> },
+  require:  { senderConstrained: <span class="c-kw">true</span> },   <span class="c-cm">// reject bearer replay</span>
+});
+
+<span class="c-kw">export const</span> <span class="c-fn">requireScope</span> = (<span class="c-id">scope</span>: <span class="c-id">string</span>) =&gt;
+  <span class="c-kw">async</span> (<span class="c-id">req</span>: <span class="c-id">Request</span>, <span class="c-id">next</span>: <span class="c-id">Next</span>) =&gt; {
+    <span class="c-kw">const</span> <span class="c-id">claim</span> = <span class="c-kw">await</span> signet.<span class="c-fn">verify</span>(req.headers.authorization, {
+      scope,
+      tenant: req.params.tenant,
+    });
+
+    <span class="c-kw">if</span> (!claim.ok) <span class="c-kw">return</span> <span class="c-fn">problem</span>(<span class="c-nu">401</span>, claim.error);   <span class="c-cm">// RFC 9457</span>
+
+    req.principal = claim.subject;      <span class="c-cm">// user: | service: | agent:</span>
+    req.risk      = claim.risk;         <span class="c-cm">// 0–100, from the auth stream</span>
+
+    <span class="c-kw">return</span> <span class="c-fn">next</span>();
+  };</code></pre>
+          <div class="code-foot">
+            <span class="lbl">Verification is local · JWKS cached · no call to Signet on the hot path</span>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-agent" role="tabpanel" aria-labelledby="tab-agent" data-open="false" tabindex="0">
+<pre><code><span class="c-cm">// Mint a scoped grant for an MCP agent, on behalf of a named human.</span>
+<span class="c-kw">const</span> <span class="c-id">grant</span> = <span class="c-kw">await</span> signet.agents.<span class="c-fn">grant</span>({
+  agent:        <span class="c-st">"agent:runbook-copilot"</span>,
+  delegatedBy:  <span class="c-st">"user:m.arslan"</span>,        <span class="c-cm">// the human on the hook</span>
+  tenant:       <span class="c-st">"acme-eu"</span>,
+
+  scopes: [
+    <span class="c-st">"billing.invoices:read"</span>,
+    <span class="c-st">"tickets:write?queue=tier-1"</span>,     <span class="c-cm">// narrowed by argument</span>
+  ],
+
+  tools:    [<span class="c-st">"list_invoices"</span>, <span class="c-st">"open_ticket"</span>],
+  ttl:      <span class="c-st">"15m"</span>,
+  binding:  { dpop: <span class="c-kw">true</span>, ip: req.ip },
+  reason:   <span class="c-st">"INC-4471 billing reconciliation"</span>,
+});
+
+<span class="c-cm">// The agent presents the grant on connect and at every tool call.</span>
+<span class="c-kw">await</span> mcp.<span class="c-fn">connect</span>({ server: <span class="c-st">"acme-ops"</span>, token: grant.token });
+
+<span class="c-cm">// Pull it back the moment the incident closes.</span>
+<span class="c-kw">await</span> signet.agents.<span class="c-fn">revoke</span>(grant.id, { cascade: <span class="c-kw">true</span> });</code></pre>
+          <div class="code-foot">
+            <span class="lbl">Grant, delegator, tool, and argument hash written to the audit log</span>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-policy" role="tabpanel" aria-labelledby="tab-policy" data-open="false" tabindex="0">
+<pre><code><span class="c-cm"># One policy adjudicates people and agents alike.</span>
+<span class="c-kw">policy</span> <span class="c-fn">billing.invoices.read</span> {
+
+  <span class="c-kw">allow</span> subject <span class="c-kw">when</span>
+    subject.tenant == resource.tenant
+    <span class="c-kw">and</span> subject <span class="c-kw">has</span> <span class="c-fn">role</span>(<span class="c-st">"finance.viewer"</span>)
+
+  <span class="c-kw">allow</span> agent <span class="c-kw">when</span>
+    agent.delegated_by <span class="c-kw">has</span> <span class="c-fn">role</span>(<span class="c-st">"finance.viewer"</span>)
+    <span class="c-kw">and</span> grant.scopes <span class="c-kw">contains</span> <span class="c-st">"billing.invoices:read"</span>
+    <span class="c-kw">and</span> signal.risk &lt; <span class="c-nu">40</span>            <span class="c-cm"># from the analytics stream</span>
+    <span class="c-kw">and</span> <span class="c-fn">now</span>() &lt; grant.expires_at
+
+  <span class="c-kw">deny always when</span>
+    resource.classification == <span class="c-st">"restricted"</span>
+
+  <span class="c-kw">audit</span> subject.id, agent.id, grant.id, decision.clause
+}</code></pre>
+          <div class="code-foot">
+            <span class="lbl">Typed · versioned in your repository · dry-run against yesterday's traffic before merge</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── DEPLOY ───────────────────────────────────────────────── -->
+  <section class="sect" id="deploy">
+    <div class="wrap">
+      <div class="sect-head rv">
+        <span class="lbl lbl-b">Part IV · Deployment</span>
+        <h2>It runs where your data already lives.</h2>
+        <p>
+          Signet is one static binary and one Postgres database. No sidecar, no message broker, no vendor
+          endpoint to allow through the firewall. If the cluster is air-gapped, so is Signet.
+        </p>
+      </div>
+
+      <div class="deploy-grid">
+        <div class="rv">
+          <div class="facts">
+            <div class="fact">
+              <span class="lbl">Footprint</span>
+              <p>One binary, <b>64 MB</b> resident at idle. Postgres 14 or later for state; optional
+                 read replica for the analytics stream.</p>
+            </div>
+
+            <div class="fact">
+              <span class="lbl">Install</span>
+              <p>Helm chart, Docker Compose, or a Terraform module. Schema migrations run on boot and are
+                 reversible for one minor version.</p>
+            </div>
+
+            <div class="fact">
+              <span class="lbl">Egress</span>
+              <p><b>None required.</b> Licence verification is an offline file. Model weights for the
+                 analytics layer ship in the image.</p>
+            </div>
+
+            <div class="fact">
+              <span class="lbl">Upgrades</span>
+              <p>Rolling, zero-downtime, with signing keys overlapping across versions so tokens issued
+                 before the upgrade keep verifying.</p>
+            </div>
+
+            <div class="fact">
+              <span class="lbl">Licence</span>
+              <p>Core is Apache 2.0 and forkable. The analytics and agent-governance layers are commercial,
+                 per cluster, not per seat.</p>
+            </div>
+          </div>
+
+          <div class="migrate">
+            <span class="lbl lbl-b">Migration</span>
+            <p>
+              Import realms, clients, users, and group mappings when you migrate from Keycloak or Okta.
+              Subject identifiers are preserved, so tokens your services already store keep resolving and
+              nobody is forced to sign in again.
+            </p>
+          </div>
+        </div>
+
+        <div class="rv">
+          <div class="shell">
+            <div class="shell-head">
+              <span class="lbl lbl-b">Install</span>
+              <span class="lbl">bash</span>
+            </div>
+<pre><code><span class="c-pn">$</span> helm repo add signet https://charts.signet.dev
+<span class="c-pn">$</span> helm install signet signet/signet \
+    <span class="c-kw">--set</span> postgres.dsn=<span class="c-st">"$SIGNET_DSN"</span> \
+    <span class="c-kw">--set</span> residency.region=<span class="c-st">eu-central</span> \
+    <span class="c-kw">--set</span> mcp.enabled=<span class="c-kw">true</span> \
+    <span class="c-kw">--set</span> egress.mode=<span class="c-st">none</span>
+
+<span class="c-cm">  signet 4.1.2 — 3 replicas ready in 41s</span>
+<span class="c-cm">  issuer      https://auth.acme.dev</span>
+<span class="c-cm">  mcp         /mcp/authorize · /mcp/grant · /mcp/revoke</span>
+<span class="c-cm">  audit       hash-chained, anchored hourly</span></code></pre>
+          </div>
+
+          <div class="scroller">
+            <table>
+              <caption>Reference topologies · measured on 4 vCPU nodes</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Topology</th>
+                  <th scope="col">Nodes</th>
+                  <th scope="col">Tokens / s</th>
+                  <th scope="col">Failover</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="principal">Single node</td>
+                  <td>1 + Postgres</td>
+                  <td>1,400</td>
+                  <td>Manual</td>
+                </tr>
+                <tr>
+                  <td class="principal">Highly available</td>
+                  <td>3 across zones</td>
+                  <td>18,000</td>
+                  <td>&lt; 5 s, automatic</td>
+                </tr>
+                <tr>
+                  <td class="principal">Air-gapped</td>
+                  <td>3, no egress</td>
+                  <td>18,000</td>
+                  <td>&lt; 5 s, automatic</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TRUST ────────────────────────────────────────────────── -->
+  <section class="trust" id="trust">
+    <div class="wrap">
+      <div class="trust-grid">
+        <div class="trust-item rv">
+          <span class="lbl lbl-b">Attested</span>
+          <h3>SOC 2 Type II</h3>
+          <p>Reported annually across security, availability, and confidentiality. Report and bridge letter
+             available under NDA.</p>
+        </div>
+
+        <div class="trust-item rv">
+          <span class="lbl lbl-b">Certified</span>
+          <h3>ISO/IEC 27001</h3>
+          <p>Information security management certified for the platform, the build pipeline, and the
+             release signing process.</p>
+        </div>
+
+        <div class="trust-item rv">
+          <span class="lbl lbl-b">Evidence</span>
+          <h3>Hash-chained audit log</h3>
+          <p>Append-only, tamper-evident, anchored hourly. Exportable to your SIEM without losing the
+             chain.</p>
+        </div>
+
+        <div class="trust-item rv">
+          <span class="lbl lbl-b">Residency</span>
+          <h3>Data stays put</h3>
+          <p>Pin personal data to a region, or to your own hardware. Signet has no control plane that needs
+             to see it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CLOSE ────────────────────────────────────────────────── -->
+  <section class="wrap close">
+    <span class="lbl lbl-b rv">Part V · Next</span>
+
+    <h2 class="rv">Put your name on every access decision.</h2>
+
+    <p class="rv">
+      Start with the Apache 2.0 core on a laptop, or ask for a scoped pilot against one tenant and one
+      agent workload. Either way, the deployment is yours from the first token.
+    </p>
+
+    <div class="hero-cta rv" style="margin-top: 0;">
+      <a class="btn btn-solid" href="#deploy">Deploy Signet</a>
+      <a class="btn btn-quiet" href="#integrate">Talk to an engineer</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="mark" href="#top" aria-label="Signet, back to top">
+          <svg width="22" height="22" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+            <circle cx="20" cy="20" r="18.5" stroke="var(--bronze)" stroke-width="1"/>
+            <circle cx="20" cy="20" r="15" stroke="var(--bronze)" stroke-width="1" stroke-dasharray="1 4.2"/>
+            <circle cx="20" cy="20" r="10.5" fill="var(--seal-fill)" stroke="var(--bronze)" stroke-width="1"/>
+            <path d="M20 12.5v15M14.5 16.5h11M14.5 23.5h11" stroke="var(--bronze)" stroke-width="1" stroke-linecap="round" opacity=".85"/>
+          </svg>
+          <span class="mark-name">Signet</span>
+        </a>
+
+        <p class="lbl" style="margin-top: 1rem; line-height: 1.9;">
+          Identity, sealed.<br>Self-hosted authorization for people, services, and agents.
+        </p>
+      </div>
+
+      <div>
+        <h4>Platform</h4>
+        <ul>
+          <li><a href="#authorization">Authorization</a></li>
+          <li><a href="#analytics">Analytics</a></li>
+          <li><a href="#agents">Agent identity</a></li>
+          <li><a href="#integrate">Policy language</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Engineering</h4>
+        <ul>
+          <li><a href="#integrate">SDK reference</a></li>
+          <li><a href="#deploy">Helm chart</a></li>
+          <li><a href="#deploy">Migration guide</a></li>
+          <li><a href="#deploy">Release notes</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Assurance</h4>
+        <ul>
+          <li><a href="#trust">Trust report</a></li>
+          <li><a href="#trust">Audit log format</a></li>
+          <li><a href="#trust">Data residency</a></li>
+          <li><a href="#trust">Disclosure policy</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="foot-bottom">
+      <span class="lbl">© 2026 Signet · Apache 2.0 core</span>
+      <span class="lbl">Status · Security contact · Terms</span>
+    </div>
+
+    <p class="disclaimer" style="margin-top: 1.25rem;">
+      Signet is a fictional product created as a design study. The certifications, metrics, and customer
+      references on this page are illustrative and describe no real company or attestation.
+    </p>
+  </div>
+</footer>
+
+<style>
+  /* ── Design-review appendix ──────────────────────────────────────────────
+     Not part of the direction — a harness for judging it. The switch forces a
+     theme regardless of OS preference, and the palette prints the resolved
+     value of every token so both stocks can be compared side by side. */
+
+  .dvp-switch {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 900;
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+    background: var(--ground-2);
+    border: 1px solid var(--rule);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+
+  .dvp-switch button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--ink-3);
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 0 14px;
+    min-height: 40px;
+    cursor: pointer;
+  }
+
+  .dvp-switch button[aria-pressed='true'] {
+    background: var(--bronze);
+    color: var(--ground);
+  }
+
+  .dvp {
+    border-top: 1px solid var(--rule);
+    padding: clamp(2.5rem, 6vw, 4rem) 0 6rem;
+    background: var(--ground-2);
+  }
+
+  .dvp h2 {
+    font-family: var(--serif);
+    font-size: var(--step-2, 1.75rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .dvp-note { color: var(--ink-2); max-width: 62ch; font-size: 0.9375rem; }
+
+  .dvp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: 1px;
+    margin-top: 2rem;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+
+  .dvp-sw {
+    background: var(--ground);
+    padding: 0.9rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .dvp-chip {
+    height: 3rem;
+    border: 1px solid var(--rule);
+  }
+
+  .dvp-sw b {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+
+  .dvp-sw code {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--ink-3);
+    text-transform: uppercase;
+  }
+</style>
+
+<div class="dvp-switch" role="group" aria-label="Preview theme">
+  <button type="button" data-mode="light" aria-pressed="false">Light</button>
+  <button type="button" data-mode="dark" aria-pressed="false">Dark</button>
+</div>
+
+<section class="dvp">
+  <div class="wrap">
+    <span class="lbl lbl-b">Appendix · palette</span>
+    <h2>Both stocks, every token.</h2>
+    <p class="dvp-note">
+      Values are read from the live stylesheet, so they always match what the page is actually
+      painting. Switch the theme with the control in the corner and the whole table re-resolves.
+    </p>
+
+    <div class="dvp-grid">
+      <div class="dvp-sw" data-token="--ground"><span class="dvp-chip" style="background: var(--ground)"></span><b>--ground</b><code></code></div>
+      <div class="dvp-sw" data-token="--ground-2"><span class="dvp-chip" style="background: var(--ground-2)"></span><b>--ground-2</b><code></code></div>
+      <div class="dvp-sw" data-token="--ground-3"><span class="dvp-chip" style="background: var(--ground-3)"></span><b>--ground-3</b><code></code></div>
+      <div class="dvp-sw" data-token="--seal-fill"><span class="dvp-chip" style="background: var(--seal-fill)"></span><b>--seal-fill</b><code></code></div>
+      <div class="dvp-sw" data-token="--ink"><span class="dvp-chip" style="background: var(--ink)"></span><b>--ink</b><code></code></div>
+      <div class="dvp-sw" data-token="--ink-2"><span class="dvp-chip" style="background: var(--ink-2)"></span><b>--ink-2</b><code></code></div>
+      <div class="dvp-sw" data-token="--ink-3"><span class="dvp-chip" style="background: var(--ink-3)"></span><b>--ink-3</b><code></code></div>
+      <div class="dvp-sw" data-token="--rule"><span class="dvp-chip" style="background: var(--rule)"></span><b>--rule</b><code></code></div>
+      <div class="dvp-sw" data-token="--rule-soft"><span class="dvp-chip" style="background: var(--rule-soft)"></span><b>--rule-soft</b><code></code></div>
+      <div class="dvp-sw" data-token="--bronze"><span class="dvp-chip" style="background: var(--bronze)"></span><b>--bronze</b><code></code></div>
+      <div class="dvp-sw" data-token="--bronze-lift"><span class="dvp-chip" style="background: var(--bronze-lift)"></span><b>--bronze-lift</b><code></code></div>
+      <div class="dvp-sw" data-token="--bronze-dim"><span class="dvp-chip" style="background: var(--bronze-dim)"></span><b>--bronze-dim</b><code></code></div>
+      <div class="dvp-sw" data-token="--slate"><span class="dvp-chip" style="background: var(--slate)"></span><b>--slate</b><code></code></div>
+      <div class="dvp-sw" data-token="--slate-dim"><span class="dvp-chip" style="background: var(--slate-dim)"></span><b>--slate-dim</b><code></code></div>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    // ── Design-review controls ────────────────────────────────────────────
+    // A theme switch that stamps data-theme on the root, and a palette whose
+    // hex values are read back from the live computed style rather than
+    // hardcoded — so the swatches cannot drift from the tokens they document.
+    var root = document.documentElement;
+
+    function paintPalette() {
+      var cs = getComputedStyle(root);
+
+      document.querySelectorAll('.dvp-sw').forEach(function (el) {
+        var value = cs.getPropertyValue(el.dataset.token).trim();
+        el.querySelector('code').textContent = value || '—';
+      });
+    }
+
+    function applyTheme(mode) {
+      root.dataset.theme = mode;
+
+      document.querySelectorAll('.dvp-switch button').forEach(function (b) {
+        b.setAttribute('aria-pressed', b.dataset.mode === mode ? 'true' : 'false');
+      });
+
+      // One frame later: the custom properties have resolved by then.
+      requestAnimationFrame(paintPalette);
+    }
+
+    document.querySelectorAll('.dvp-switch button').forEach(function (b) {
+      b.addEventListener('click', function () { applyTheme(b.dataset.mode); });
+    });
+
+    applyTheme(
+      root.dataset.theme ||
+        (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'),
+    );
+
+    // Tabs — decisive switch, no cross-fade.
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+
+    function select(tab) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        document.getElementById(t.dataset.target).setAttribute('data-open', on ? 'true' : 'false');
+      });
+    }
+
+    tabs.forEach(function (tab, i) {
+      tab.addEventListener('click', function () { select(tab); });
+
+      tab.addEventListener('keydown', function (e) {
+        var next = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : null;
+
+        if (next === null) return;
+
+        e.preventDefault();
+        var target = tabs[(next + tabs.length) % tabs.length];
+        select(target);
+        target.focus();
+      });
+    });
+
+    // One scroll reveal: elements click into position, then the observer lets go.
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var items = Array.prototype.slice.call(document.querySelectorAll('.rv'));
+
+    if (reduced || !('IntersectionObserver' in window)) {
+      items.forEach(function (el) { el.classList.add('set'); });
+      return;
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+
+        entry.target.classList.add('set');
+        io.unobserve(entry.target);
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+
+    items.forEach(function (el) { io.observe(el); });
+  })();
+</script>

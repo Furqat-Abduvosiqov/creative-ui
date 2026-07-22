@@ -1,0 +1,1908 @@
+<title>Portcullis — the identity control plane</title>
+
+<style>
+  /* ============================================================
+     PORTCULLIS — direction B, "the control plane"
+     Dark-first instrument panel. Amber = attention. Cyan = live.
+     ============================================================ */
+
+  :root {
+    /* ground + surfaces (cool slate, blue-grey bias) */
+    --bg:        #0F1418;
+    --bg-deep:   #0A0E11;
+    --panel:     #151C22;
+    --panel-2:   #1B242B;
+    --panel-3:   #212C34;
+    --line:      #26323A;
+    --line-soft: #1D272E;
+
+    /* ink */
+    --ink:   #E6EDF2;
+    --ink-2: #9BACB7;
+    --ink-3: #6A7C88;
+
+    /* semantic: amber = attention, cyan = live telemetry */
+    --amber:      #FFB020;
+    --amber-ink:  #FFB020;
+    --amber-soft: rgba(255, 176, 32, 0.13);
+    --amber-line: rgba(255, 176, 32, 0.38);
+
+    --cyan:      #35D6D0;
+    --cyan-ink:  #35D6D0;
+    --cyan-soft: rgba(53, 214, 208, 0.12);
+    --cyan-line: rgba(53, 214, 208, 0.36);
+
+    --crit:      #FF6B5A;
+    --crit-ink:  #FF6B5A;
+    --crit-soft: rgba(255, 107, 90, 0.14);
+    --crit-line: rgba(255, 107, 90, 0.40);
+
+    --grid: rgba(230, 237, 242, 0.055);
+    --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 34px rgba(0, 0, 0, 0.42);
+
+    /* type */
+    --sans: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", "Cascadia Code", Consolas, "SF Mono", Menlo, monospace;
+
+    /* code tokens */
+    --c-key: #FFB020;
+    --c-str: #35D6D0;
+    --c-com: #63757F;
+    --c-fn:  #C9D6DE;
+    --c-num: #E6A2FF;
+    --c-pun: #7A8C97;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg:        #E7EDF0;
+      --bg-deep:   #DDE5E9;
+      --panel:     #FFFFFF;
+      --panel-2:   #F2F6F8;
+      --panel-3:   #E9EFF2;
+      --line:      #C8D4DA;
+      --line-soft: #DEE7EB;
+
+      --ink:   #0D1418;
+      --ink-2: #4C5F6A;
+      --ink-3: #6E818B;
+
+      --amber:      #D98A00;
+      --amber-ink:  #8A5300;
+      --amber-soft: rgba(217, 138, 0, 0.14);
+      --amber-line: rgba(217, 138, 0, 0.46);
+
+      --cyan:      #0E9B95;
+      --cyan-ink:  #0A6C68;
+      --cyan-soft: rgba(14, 155, 149, 0.13);
+      --cyan-line: rgba(14, 155, 149, 0.42);
+
+      --crit:      #D64530;
+      --crit-ink:  #9E2A1A;
+      --crit-soft: rgba(214, 69, 48, 0.12);
+      --crit-line: rgba(214, 69, 48, 0.42);
+
+      --grid: rgba(13, 20, 24, 0.06);
+      --shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 8px 24px rgba(23, 43, 56, 0.10);
+
+      --c-key: #9A4C00;
+      --c-str: #0A6C68;
+      --c-com: #77878F;
+      --c-fn:  #23323A;
+      --c-num: #7B3FA0;
+      --c-pun: #6E818B;
+    }
+  }
+
+  /* viewer toggle must win in both directions */
+  :root[data-theme="dark"] {
+    --bg: #0F1418; --bg-deep: #0A0E11; --panel: #151C22; --panel-2: #1B242B;
+    --panel-3: #212C34; --line: #26323A; --line-soft: #1D272E;
+    --ink: #E6EDF2; --ink-2: #9BACB7; --ink-3: #6A7C88;
+    --amber: #FFB020; --amber-ink: #FFB020;
+    --amber-soft: rgba(255,176,32,0.13); --amber-line: rgba(255,176,32,0.38);
+    --cyan: #35D6D0; --cyan-ink: #35D6D0;
+    --cyan-soft: rgba(53,214,208,0.12); --cyan-line: rgba(53,214,208,0.36);
+    --crit: #FF6B5A; --crit-ink: #FF6B5A;
+    --crit-soft: rgba(255,107,90,0.14); --crit-line: rgba(255,107,90,0.40);
+    --grid: rgba(230,237,242,0.055);
+    --shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 34px rgba(0,0,0,0.42);
+    --c-key: #FFB020; --c-str: #35D6D0; --c-com: #63757F;
+    --c-fn: #C9D6DE; --c-num: #E6A2FF; --c-pun: #7A8C97;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #E7EDF0; --bg-deep: #DDE5E9; --panel: #FFFFFF; --panel-2: #F2F6F8;
+    --panel-3: #E9EFF2; --line: #C8D4DA; --line-soft: #DEE7EB;
+    --ink: #0D1418; --ink-2: #4C5F6A; --ink-3: #6E818B;
+    --amber: #D98A00; --amber-ink: #8A5300;
+    --amber-soft: rgba(217,138,0,0.14); --amber-line: rgba(217,138,0,0.46);
+    --cyan: #0E9B95; --cyan-ink: #0A6C68;
+    --cyan-soft: rgba(14,155,149,0.13); --cyan-line: rgba(14,155,149,0.42);
+    --crit: #D64530; --crit-ink: #9E2A1A;
+    --crit-soft: rgba(214,69,48,0.12); --crit-line: rgba(214,69,48,0.42);
+    --grid: rgba(13,20,24,0.06);
+    --shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 8px 24px rgba(23,43,56,0.10);
+    --c-key: #9A4C00; --c-str: #0A6C68; --c-com: #77878F;
+    --c-fn: #23323A; --c-num: #7B3FA0; --c-pun: #6E818B;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background:
+      linear-gradient(180deg, var(--bg-deep) 0, var(--bg) 460px, var(--bg) 100%);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ---------- primitives ---------- */
+
+  .wrap {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .mono {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .lbl {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  h1, h2, h3 {
+    margin: 0;
+    font-weight: 650;
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+  }
+
+  h1 { font-size: clamp(30px, 4.4vw, 48px); line-height: 1.07; }
+  h2 { font-size: clamp(22px, 2.8vw, 30px); line-height: 1.14; }
+  h3 { font-size: 16.5px; line-height: 1.3; letter-spacing: -0.012em; }
+
+  p { margin: 0; }
+
+  a { color: inherit; }
+
+  a:focus-visible,
+  button:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 3px;
+    border-radius: 1px;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+
+  .rule {
+    height: 1px;
+    background: var(--line);
+    border: 0;
+    margin: 0;
+  }
+
+  /* ---------- nav ---------- */
+
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--bg-deep);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .nav-in {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    height: 56px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    text-decoration: none;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    font-size: 16px;
+  }
+
+  .brand svg { display: block; }
+
+  .brand .ver {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    border: 1px solid var(--line);
+    padding: 1px 5px;
+    border-radius: 2px;
+    margin-left: 2px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 22px;
+    margin-left: auto;
+  }
+
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--ink-2);
+    text-decoration: none;
+    padding: 4px 0;
+    border-bottom: 1px solid transparent;
+  }
+
+  .nav-links a:hover { color: var(--ink); border-bottom-color: var(--cyan-line); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 9px 15px;
+    border-radius: 2px;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    background: var(--panel-2);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .btn:hover { border-color: var(--ink-3); }
+
+  .btn-key {
+    background: var(--cyan-soft);
+    border-color: var(--cyan-line);
+    color: var(--cyan-ink);
+  }
+
+  .btn-key:hover { border-color: var(--cyan); background: color-mix(in srgb, var(--cyan) 18%, transparent); }
+
+  .nav .btn { margin-left: 8px; }
+
+  /* ---------- hero head ---------- */
+
+  .hero { padding: 54px 0 18px; }
+
+  .hero-head { max-width: 720px; }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .hero-head h1 { margin-bottom: 18px; }
+
+  .lede {
+    color: var(--ink-2);
+    font-size: 16.5px;
+    max-width: 64ch;
+    line-height: 1.62;
+  }
+
+  .cta-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .cta-note {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-3);
+    letter-spacing: 0.02em;
+  }
+
+  /* ---------- live chip ---------- */
+
+  .live {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cyan-ink);
+    border: 1px solid var(--cyan-line);
+    background: var(--cyan-soft);
+    padding: 3px 9px 3px 7px;
+    border-radius: 2px;
+  }
+
+  .dot {
+    position: relative;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    flex: none;
+  }
+
+  .dot::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 1px solid var(--cyan);
+    animation: ping 2.2s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+  }
+
+  @keyframes ping {
+    0%   { transform: scale(0.5); opacity: 0.9; }
+    70%  { transform: scale(1.9); opacity: 0; }
+    100% { transform: scale(1.9); opacity: 0; }
+  }
+
+  /* ---------- console ---------- */
+
+  .console {
+    margin-top: 34px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .console-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+
+  .cbar-cell {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    padding: 9px 14px;
+    border-right: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .cbar-cell b { font-weight: 500; color: var(--ink); }
+  .cbar-cell span { color: var(--ink-3); font-size: 10px; letter-spacing: 0.11em; text-transform: uppercase; }
+  .cbar-cell:last-child { border-right: 0; margin-left: auto; }
+
+  /* KPI strip */
+
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .kpi {
+    padding: 14px 16px 12px;
+    border-right: 1px solid var(--line);
+    min-width: 0;
+  }
+
+  .kpi:last-child { border-right: 0; }
+
+  .kpi-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .kpi-val {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(21px, 2.5vw, 27px);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-top: 8px;
+    color: var(--ink);
+  }
+
+  .kpi-val u { text-decoration: none; font-size: 13px; color: var(--ink-3); margin-left: 3px; }
+
+  .kpi-foot {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .kpi-delta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .kpi.attn .kpi-val { color: var(--amber-ink); }
+  .kpi.attn .kpi-delta { color: var(--amber-ink); }
+
+  .spark { width: 96px; height: 32px; flex: none; overflow: visible; }
+  .spark path.ln { fill: none; stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+  .spark .cy { stroke: var(--cyan); }
+  .spark .cy-a { fill: var(--cyan-soft); stroke: none; }
+  .spark .am { stroke: var(--amber); }
+  .spark .am-a { fill: var(--amber-soft); stroke: none; }
+  .spark circle { stroke-width: 1.4; }
+
+  .draw {
+    stroke-dasharray: 160;
+    stroke-dashoffset: 160;
+    animation: draw 1.5s cubic-bezier(0.25, 0.8, 0.3, 1) forwards;
+  }
+
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+
+  .fade-in { animation: fadeIn 0.5s 1.35s both; }
+  .fade-late { animation: fadeIn 0.5s 2.5s both; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* console split */
+
+  .console-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 336px;
+  }
+
+  .pane { min-width: 0; }
+  .pane + .pane { border-left: 1px solid var(--line); }
+
+  .pane-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel-2);
+  }
+
+  .pane-head .lbl { color: var(--ink-2); }
+  .pane-head .count { margin-left: auto; }
+
+  /* ---------- session table ---------- */
+
+  .tscroll { overflow-x: auto; }
+
+  table.sessions {
+    width: 100%;
+    min-width: 880px;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  table.sessions th {
+    text-align: left;
+    font-weight: 400;
+    font-size: 10px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+    background: var(--panel);
+  }
+
+  table.sessions td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line-soft);
+    color: var(--ink-2);
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  table.sessions tr:last-child td { border-bottom: 0; }
+  table.sessions tr:hover td { background: var(--panel-2); }
+
+  table.sessions td.sub { color: var(--ink); }
+  table.sessions td:first-child,
+  table.sessions th:first-child { border-left: 2px solid transparent; padding-left: 14px; }
+
+  tr[data-sev="high"] td:first-child { border-left-color: var(--amber); }
+  tr[data-sev="critical"] td:first-child { border-left-color: var(--crit); }
+
+  .dim { color: var(--ink-3); }
+
+  /* type badge */
+  .ty {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 1px 5px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    color: var(--ink-3);
+  }
+
+  .ty.agent { color: var(--cyan-ink); border-color: var(--cyan-line); background: var(--cyan-soft); }
+
+  /* risk cell: number + meter, form carries severity */
+  .risk { display: flex; align-items: center; gap: 8px; }
+
+  .risk b {
+    font-weight: 500;
+    width: 20px;
+    text-align: right;
+    color: var(--ink-2);
+  }
+
+  .meter {
+    width: 44px;
+    height: 4px;
+    background: var(--line);
+    border-radius: 1px;
+    overflow: hidden;
+    flex: none;
+  }
+
+  .meter i { display: block; height: 100%; background: var(--ink-3); }
+
+  .risk.elevated b { color: var(--ink); }
+  .risk.elevated .meter i { background: var(--amber); opacity: 0.55; }
+  .risk.high b { color: var(--amber-ink); }
+  .risk.high .meter i { background: var(--amber); }
+  .risk.critical b { color: var(--crit-ink); }
+  .risk.critical .meter i { background: var(--crit); }
+
+  .pill {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 2px;
+    border: 1px solid var(--line);
+    color: var(--ink-3);
+  }
+
+  .pill.allow  { color: var(--ink-2); }
+  .pill.stepup { color: var(--amber-ink); border-color: var(--amber-line); background: var(--amber-soft); }
+  .pill.trim   { color: var(--cyan-ink); border-color: var(--cyan-line); background: var(--cyan-soft); }
+  .pill.deny   { color: var(--crit-ink); border-color: var(--crit-line); background: var(--crit-soft); }
+
+  /* ---------- decision feed ---------- */
+
+  .feed { list-style: none; margin: 0; padding: 0; max-height: 288px; overflow: hidden; }
+
+  .feed li {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 10px;
+    padding: 9px 16px;
+    border-bottom: 1px solid var(--line-soft);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-2);
+  }
+
+  .feed li .ts { color: var(--ink-3); }
+  .feed li .vd { display: block; margin-bottom: 2px; letter-spacing: 0.06em; font-size: 10.5px; }
+  .feed li .msg { color: var(--ink-2); word-break: break-word; white-space: normal; line-height: 1.45; }
+  .feed li .msg em { font-style: normal; color: var(--ink); }
+
+  .vd.allow  { color: var(--ink-3); }
+  .vd.deny   { color: var(--crit-ink); }
+  .vd.stepup { color: var(--amber-ink); }
+  .vd.trim   { color: var(--cyan-ink); }
+  .vd.issue  { color: var(--ink-3); }
+  .vd.revoke { color: var(--crit-ink); }
+
+  .slide-in { animation: slideIn 340ms cubic-bezier(0.2, 0.8, 0.3, 1); }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); background: var(--cyan-soft); }
+    to   { opacity: 1; transform: none; background: transparent; }
+  }
+
+  /* ---------- generic section ---------- */
+
+  .sec { padding: 84px 0 0; }
+
+  .sec-head { max-width: 660px; margin-bottom: 30px; }
+  .sec-head h2 { margin: 12px 0 12px; }
+  .sec-head p { color: var(--ink-2); max-width: 60ch; }
+
+  /* ---------- pillars ---------- */
+
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .pillar {
+    background: var(--panel);
+    padding: 22px 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pillar-tag {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .pillar p { color: var(--ink-2); font-size: 14.5px; }
+
+  .specs {
+    list-style: none;
+    margin: 6px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .specs li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line-soft);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-2);
+  }
+
+  .specs li b { font-weight: 400; color: var(--ink-3); font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; }
+  .specs li span { text-align: right; }
+
+  /* ---------- code ---------- */
+
+  .code-shell { border-radius: 4px; overflow: hidden; box-shadow: var(--shadow); }
+
+  .tabs {
+    display: flex;
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+  }
+
+  .tab {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    padding: 11px 16px;
+    background: transparent;
+    border: 0;
+    border-right: 1px solid var(--line);
+    border-bottom: 2px solid transparent;
+    color: var(--ink-3);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .tab:hover { color: var(--ink-2); }
+
+  .tab[aria-selected="true"] {
+    color: var(--ink);
+    background: var(--panel);
+    border-bottom-color: var(--cyan);
+  }
+
+  .tab .fileno { color: var(--ink-3); }
+  .tab[aria-selected="true"] .fileno { color: var(--ink-2); }
+
+  pre {
+    margin: 0;
+    padding: 20px 22px;
+    overflow-x: auto;
+    background: var(--panel);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.72;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    tab-size: 2;
+  }
+
+  .k { color: var(--c-key); }
+  .s { color: var(--c-str); }
+  .c { color: var(--c-com); font-style: normal; }
+  .f { color: var(--c-fn); }
+  .n { color: var(--c-num); }
+  .o { color: var(--c-pun); }
+
+  .code-foot {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    padding: 10px 22px;
+    background: var(--panel-2);
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- anomaly block ---------- */
+
+  .chartcard { padding: 18px 20px 14px; }
+
+  .chart-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .chart-head .now {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--crit-ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chart { width: 100%; height: auto; display: block; }
+  .chart .grid { stroke: var(--grid); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .chart .thr { stroke: var(--amber-line); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+  .chart .area { fill: url(#riskFill); stroke: none; }
+  .chart .line { fill: none; stroke: var(--cyan); stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+  .chart .lineHot { fill: none; stroke: var(--amber); stroke-width: 1.9; vector-effect: non-scaling-stroke; }
+  .chart text { font-family: var(--mono); fill: var(--ink-3); font-size: 6.5px; letter-spacing: 0.06em; }
+
+  .chart-axis {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    padding-top: 6px;
+    border-top: 1px solid var(--line-soft);
+    margin-top: 6px;
+  }
+
+  .drawlong {
+    stroke-dasharray: 520;
+    stroke-dashoffset: 520;
+    animation: draw 1.9s 0.1s cubic-bezier(0.3, 0.7, 0.3, 1) forwards;
+  }
+
+  .drawhot {
+    stroke-dasharray: 160;
+    stroke-dashoffset: 160;
+    animation: draw 0.8s 1.85s cubic-bezier(0.3, 0.7, 0.3, 1) forwards;
+  }
+
+  .anom-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .det { padding: 4px 0 0; }
+
+  .det-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6px 14px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .det-item:last-child { border-bottom: 0; }
+  .det-item h3 { grid-column: 1; font-size: 14px; }
+  .det-item .sev { grid-column: 2; grid-row: 1; align-self: center; }
+  .det-item p { grid-column: 1 / -1; color: var(--ink-2); font-size: 13px; }
+  .det-item .ev { grid-column: 1 / -1; font-family: var(--mono); font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .det-item .ev b { font-weight: 400; color: var(--ink-2); }
+
+  .ask { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 14px; }
+
+  .ask-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 11px 13px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink);
+  }
+
+  .ask-field .caret { color: var(--cyan-ink); }
+
+  .ask-a { color: var(--ink-2); font-size: 14px; line-height: 1.62; }
+  .ask-a b { font-weight: 400; color: var(--ink); font-family: var(--mono); font-size: 12.5px; }
+  .ask-a .hot { color: var(--amber-ink); font-family: var(--mono); font-size: 12.5px; }
+
+  .cites { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .cite {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 2px 6px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- deploy ---------- */
+
+  .deploy-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .term { border-radius: 4px; overflow: hidden; }
+
+  .term-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .term pre { font-size: 12px; line-height: 1.8; background: var(--panel); }
+  .term .p { color: var(--cyan-ink); }
+  .term .ok { color: var(--ink); }
+
+  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+
+  .fact { background: var(--panel); padding: 15px 16px; display: flex; flex-direction: column; gap: 5px; }
+  .fact b { font-family: var(--mono); font-size: 15.5px; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .fact span { color: var(--ink-2); font-size: 12.5px; line-height: 1.45; }
+
+  .migrate {
+    margin-top: 16px;
+    padding: 15px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+
+  .migrate .mono { color: var(--ink); font-size: 12.5px; }
+
+  /* ---------- footer ---------- */
+
+  footer { margin-top: 90px; border-top: 1px solid var(--line); background: var(--bg-deep); }
+
+  .foot-grid {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: 32px;
+    padding: 40px 0 28px;
+  }
+
+  .foot-col h4 { margin: 0 0 12px; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--ink-3); font-weight: 400; }
+  .foot-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .foot-col a { font-family: var(--mono); font-size: 12px; color: var(--ink-2); text-decoration: none; }
+  .foot-col a:hover { color: var(--ink); }
+
+  .foot-brand p { color: var(--ink-3); font-size: 13px; margin-top: 12px; max-width: 34ch; line-height: 1.6; }
+
+  .foot-bar {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 14px 0 34px;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .foot-bar .sp { margin-left: auto; }
+
+  /* ---------- responsive ---------- */
+
+  @media (max-width: 1040px) {
+    .console-split { grid-template-columns: 1fr; }
+    .pane + .pane { border-left: 0; border-top: 1px solid var(--line); }
+    .anom-grid, .deploy-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 860px) {
+    .nav-links { display: none; }
+    .nav-in { gap: 12px; }
+    .brand { margin-right: auto; }
+    .kpis { grid-template-columns: 1fr 1fr; }
+    .kpi:nth-child(2) { border-right: 0; }
+    .kpi:nth-child(1), .kpi:nth-child(2) { border-bottom: 1px solid var(--line); }
+    .pillars { grid-template-columns: 1fr; }
+    .foot-grid { grid-template-columns: 1fr 1fr; gap: 26px; }
+  }
+
+  @media (max-width: 560px) {
+    .wrap { padding: 0 16px; }
+    .sec { padding-top: 60px; }
+    .kpis { grid-template-columns: 1fr; }
+    .kpi { border-right: 0; border-bottom: 1px solid var(--line); }
+    .kpi:last-child { border-bottom: 0; }
+    .facts { grid-template-columns: 1fr; }
+    .foot-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+    .draw, .drawlong, .drawhot { stroke-dashoffset: 0; }
+    .dot::after { display: none; }
+  }
+</style>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M2 3.2h16" />
+          <path d="M4 3.2v9.4l-1.4 3.9M8 3.2v11.2l-1 4.1M12 3.2v11.2l1 4.1M16 3.2v9.4l1.4 3.9" />
+          <path d="M2.9 7.4h14.2M3.4 11.3h13.2" stroke-opacity="0.55" />
+        </g>
+      </svg>
+      Portcullis
+      <span class="ver mono">4.2.1</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#platform">Authorization</a>
+      <a href="#analytics">Analytics</a>
+      <a href="#agents">Agents</a>
+      <a href="#integrate">Integrate</a>
+      <a href="#deploy">Deploy</a>
+    </nav>
+    <a class="btn btn-key" href="#deploy">Open console</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ============ HERO / CONTROL PLANE ============ -->
+  <section class="wrap hero">
+    <div class="hero-head">
+      <div class="eyebrow">
+        <span class="lbl">Identity control plane</span>
+        <span class="live"><span class="dot"></span> stream connected</span>
+      </div>
+      <h1>Every identity decision your system makes, on one surface.</h1>
+      <p class="lede">
+        Portcullis is a self-hosted identity and authorization platform. It issues the tokens,
+        enforces the policy, and streams every decision back to you — for your own users, for the
+        companies that integrate against your API, and for the agents acting on someone's behalf.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-key" href="#deploy">Deploy on your infrastructure</a>
+        <a class="btn" href="#integrate">Read the integration guide</a>
+        <span class="cta-note">Apache-2.0 core · no seat metering · no phone-home</span>
+      </div>
+    </div>
+
+    <div class="console" role="region" aria-label="Portcullis control plane, sample data">
+      <div class="console-bar">
+        <div class="cbar-cell"><span>tenant</span><b>northwind-prod</b></div>
+        <div class="cbar-cell"><span>region</span><b>eu-central-1</b></div>
+        <div class="cbar-cell"><span>window</span><b>last 60 min</b></div>
+        <div class="cbar-cell"><span>clock</span><b class="mono" id="clock">09:14:07Z</b></div>
+        <div class="cbar-cell"><span class="live"><span class="dot"></span> live</span></div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi">
+          <div class="kpi-top"><span class="lbl">Auth decisions / min</span></div>
+          <div class="kpi-val" id="k-dec">18,442</div>
+          <div class="kpi-foot">
+            <span class="kpi-delta">+4.1% vs prior hour</span>
+            <svg class="spark" viewBox="0 0 126 40" aria-hidden="true">
+              <path class="cy-a fade-in" d="M3,30 L9,27 L15,31 L21,25 L27,28 L33,22 L39,24 L45,19 L51,23 L57,17 L63,20 L69,15 L75,18 L81,13 L87,16 L93,12 L99,15 L105,10 L111,13 L117,9 L123,8 L123,40 L3,40 Z" />
+              <path class="ln cy draw" d="M3,30 L9,27 L15,31 L21,25 L27,28 L33,22 L39,24 L45,19 L51,23 L57,17 L63,20 L69,15 L75,18 L81,13 L87,16 L93,12 L99,15 L105,10 L111,13 L117,9 L123,8" />
+              <circle class="fade-in" cx="123" cy="8" r="2.6" fill="var(--panel)" stroke="var(--cyan)" />
+            </svg>
+          </div>
+        </div>
+
+        <div class="kpi">
+          <div class="kpi-top"><span class="lbl">Policy eval p99</span></div>
+          <div class="kpi-val"><span id="k-p99">8.4</span><u>ms</u></div>
+          <div class="kpi-foot">
+            <span class="kpi-delta">in-process, no round trip</span>
+            <svg class="spark" viewBox="0 0 126 40" aria-hidden="true">
+              <path class="cy-a fade-in" d="M3,20 L9,19 L15,21 L21,20 L27,18 L33,21 L39,19 L45,20 L51,22 L57,19 L63,18 L69,20 L75,19 L81,21 L87,20 L93,18 L99,19 L105,20 L111,19 L117,18 L123,17 L123,40 L3,40 Z" />
+              <path class="ln cy draw" d="M3,20 L9,19 L15,21 L21,20 L27,18 L33,21 L39,19 L45,20 L51,22 L57,19 L63,18 L69,20 L75,19 L81,21 L87,20 L93,18 L99,19 L105,20 L111,19 L117,18 L123,17" />
+              <circle class="fade-in" cx="123" cy="17" r="2.6" fill="var(--panel)" stroke="var(--cyan)" />
+            </svg>
+          </div>
+        </div>
+
+        <div class="kpi">
+          <div class="kpi-top"><span class="lbl">Agent sessions</span></div>
+          <div class="kpi-val" id="k-agents">214</div>
+          <div class="kpi-foot">
+            <span class="kpi-delta">scoped via MCP</span>
+            <svg class="spark" viewBox="0 0 126 40" aria-hidden="true">
+              <path class="cy-a fade-in" d="M3,30 L9,30 L15,29 L21,28 L27,28 L33,26 L39,25 L45,25 L51,23 L57,22 L63,20 L69,19 L75,19 L81,17 L87,16 L93,15 L99,14 L105,13 L111,12 L117,11 L123,10 L123,40 L3,40 Z" />
+              <path class="ln cy draw" d="M3,30 L9,30 L15,29 L21,28 L27,28 L33,26 L39,25 L45,25 L51,23 L57,22 L63,20 L69,19 L75,19 L81,17 L87,16 L93,15 L99,14 L105,13 L111,12 L117,11 L123,10" />
+              <circle class="fade-in" cx="123" cy="10" r="2.6" fill="var(--panel)" stroke="var(--cyan)" />
+            </svg>
+          </div>
+        </div>
+
+        <div class="kpi attn">
+          <div class="kpi-top"><span class="lbl">Open anomalies</span></div>
+          <div class="kpi-val" id="k-anom">3</div>
+          <div class="kpi-foot">
+            <span class="kpi-delta">1 critical, unacked</span>
+            <svg class="spark" viewBox="0 0 126 40" aria-hidden="true">
+              <path class="am-a fade-in" d="M3,32 L9,31 L15,32 L21,30 L27,31 L33,32 L39,30 L45,31 L51,30 L57,29 L63,31 L69,30 L75,28 L81,29 L87,27 L93,24 L99,20 L105,15 L111,12 L117,9 L123,6 L123,40 L3,40 Z" />
+              <path class="ln am draw" d="M3,32 L9,31 L15,32 L21,30 L27,31 L33,32 L39,30 L45,31 L51,30 L57,29 L63,31 L69,30 L75,28 L81,29 L87,27 L93,24 L99,20 L105,15 L111,12 L117,9 L123,6" />
+              <circle class="fade-in" cx="123" cy="6" r="3" fill="var(--amber)" stroke="var(--amber)" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="console-split">
+        <div class="pane">
+          <div class="pane-head">
+            <span class="lbl">Active sessions</span>
+            <span class="lbl count mono">6 shown / 12,884 total</span>
+          </div>
+          <div class="tscroll" tabindex="0" role="group" aria-label="Active sessions table, scrollable">
+            <table class="sessions">
+              <thead>
+                <tr>
+                  <th scope="col">Subject</th>
+                  <th scope="col">Kind</th>
+                  <th scope="col">Client</th>
+                  <th scope="col">Origin</th>
+                  <th scope="col">Risk</th>
+                  <th scope="col">Decision</th>
+                  <th scope="col">Last seen (UTC)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-sev="low">
+                  <td class="sub">m.arslanova@northwind.example</td>
+                  <td><span class="ty">human</span></td>
+                  <td class="dim">Chrome 142 · macOS 15.4</td>
+                  <td>94.132.18.7 <span class="dim">Tashkent UZ</span></td>
+                  <td><span class="risk"><b>12</b><span class="meter"><i style="width:12%"></i></span></span></td>
+                  <td><span class="pill allow">allow</span></td>
+                  <td class="dim">2026-07-22T09:14:07</td>
+                </tr>
+                <tr data-sev="low">
+                  <td class="sub">svc-billing-sync</td>
+                  <td><span class="ty">m2m</span></td>
+                  <td class="dim">sdk-go/2.9.1 · client_credentials</td>
+                  <td>10.42.7.19 <span class="dim">eu-central-1</span></td>
+                  <td><span class="risk"><b>04</b><span class="meter"><i style="width:4%"></i></span></span></td>
+                  <td><span class="pill allow">allow</span></td>
+                  <td class="dim">2026-07-22T09:14:06</td>
+                </tr>
+                <tr data-sev="elevated">
+                  <td class="sub">agent://ops-copilot-7f2</td>
+                  <td><span class="ty agent">agent</span></td>
+                  <td class="dim">mcp/1.0 · tickets:read</td>
+                  <td>34.89.201.44 <span class="dim">europe-west4</span></td>
+                  <td><span class="risk elevated"><b>38</b><span class="meter"><i style="width:38%"></i></span></span></td>
+                  <td><span class="pill trim">scope trim</span></td>
+                  <td class="dim">2026-07-22T09:14:04</td>
+                </tr>
+                <tr data-sev="high">
+                  <td class="sub">d.okonkwo@lattice.example</td>
+                  <td><span class="ty">human</span></td>
+                  <td class="dim">Safari 18.2 · iOS 18.5</td>
+                  <td>197.210.64.88 <span class="dim">Lagos NG</span></td>
+                  <td><span class="risk high"><b>71</b><span class="meter"><i style="width:71%"></i></span></span></td>
+                  <td><span class="pill stepup">step-up mfa</span></td>
+                  <td class="dim">2026-07-22T09:14:02</td>
+                </tr>
+                <tr data-sev="low">
+                  <td class="sub">root@ci-runner-14</td>
+                  <td><span class="ty">key</span></td>
+                  <td class="dim">portcullis-cli/1.4.0 · pk_live_9c31</td>
+                  <td>172.19.4.203 <span class="dim">self-hosted</span></td>
+                  <td><span class="risk"><b>09</b><span class="meter"><i style="width:9%"></i></span></span></td>
+                  <td><span class="pill allow">allow</span></td>
+                  <td class="dim">2026-07-22T09:14:01</td>
+                </tr>
+                <tr data-sev="critical">
+                  <td class="sub">j.vasquez@northwind.example</td>
+                  <td><span class="ty">human</span></td>
+                  <td class="dim">Firefox 141 · Windows 11</td>
+                  <td>45.86.200.19 <span class="dim">Frankfurt DE</span></td>
+                  <td><span class="risk critical"><b>89</b><span class="meter"><i style="width:89%"></i></span></span></td>
+                  <td><span class="pill deny">deny</span></td>
+                  <td class="dim">2026-07-22T09:13:58</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="pane">
+          <div class="pane-head">
+            <span class="lbl">Policy decisions</span>
+            <span class="lbl count mono" id="feed-rate">312 / s</span>
+          </div>
+          <ul class="feed" id="feed">
+            <li>
+              <span class="ts">09:14:07</span>
+              <span class="msg"><span class="vd allow">ALLOW</span> <em>tenant.read.self</em> — m.arslanova, WebAuthn, 1 hop</span>
+            </li>
+            <li>
+              <span class="ts">09:14:06</span>
+              <span class="msg"><span class="vd deny">DENY</span> <em>payroll.export</em> — contractor.hsu, role not in {finance.admin}</span>
+            </li>
+            <li>
+              <span class="ts">09:14:04</span>
+              <span class="msg"><span class="vd trim">SCOPE_TRIM</span> <em>ops-copilot-7f2</em> asked tickets:write, granted tickets:read</span>
+            </li>
+            <li>
+              <span class="ts">09:14:02</span>
+              <span class="msg"><span class="vd stepup">STEP_UP</span> <em>d.okonkwo</em> risk 71 — WebAuthn required before issue</span>
+            </li>
+            <li>
+              <span class="ts">09:14:01</span>
+              <span class="msg"><span class="vd issue">ISSUE</span> <em>svc-billing-sync</em> m2m token, aud=ledger, ttl 300s</span>
+            </li>
+            <li>
+              <span class="ts">09:13:58</span>
+              <span class="msg"><span class="vd revoke">REVOKE</span> <em>agent://indexer-3a1</em> — scope drift, 3 grants killed</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PILLARS ============ -->
+  <section class="wrap sec" id="platform">
+    <div class="sec-head">
+      <span class="lbl">Three planes, one event stream</span>
+      <h2>Issue it, watch it, revoke it.</h2>
+      <p>
+        Most identity products stop at the login box. Portcullis treats authorization as an
+        operational system: everything it decides is emitted as a typed event, and the same stream
+        feeds the audit log, the risk model and the kill switch.
+      </p>
+    </div>
+
+    <div class="pillars">
+      <article class="pillar">
+        <div class="pillar-tag">
+          <span class="lbl">Authorization plane</span>
+          <span class="lbl" style="color: var(--ink-3)">external</span>
+        </div>
+        <h3>You become the identity provider your partners integrate against.</h3>
+        <p>
+          Third-party companies register their own clients, get their own tenant boundary, and never
+          see a byte outside it. Policy is relationship-based, so "the auditor at Lattice can read
+          Northwind's invoices for the 2026 engagement" is one rule, not a bespoke endpoint.
+        </p>
+        <ul class="specs">
+          <li><b>Protocols</b><span>OIDC · OAuth 2.1 · SAML 2.0</span></li>
+          <li><b>Provisioning</b><span>SCIM 2.0 push + pull</span></li>
+          <li><b>Proof</b><span>PKCE required · DPoP · mTLS</span></li>
+          <li><b>Policy</b><span>ReBAC graph + ABAC conditions</span></li>
+          <li><b>Isolation</b><span>per-tenant keys and schemas</span></li>
+          <li><b>Machines</b><span>API keys, prefix lookup, SHA-256</span></li>
+        </ul>
+      </article>
+
+      <article class="pillar">
+        <div class="pillar-tag">
+          <span class="lbl">Analytics plane</span>
+          <span class="lbl" style="color: var(--cyan-ink)">live</span>
+        </div>
+        <h3>The auth stream is the richest behavioural data you already have.</h3>
+        <p>
+          Every decision carries who, what, from where, under which policy and in how many
+          milliseconds. Portcullis scores each one against that subject's own baseline rather than a
+          global threshold, and answers questions about the log in plain language.
+        </p>
+        <ul class="specs">
+          <li><b>Baseline</b><span>per subject, 30-day window</span></li>
+          <li><b>Signals</b><span>geo, device, cadence, scope</span></li>
+          <li><b>Scoring</b><span>0–100, emitted at decision time</span></li>
+          <li><b>Query</b><span>natural language over events</span></li>
+          <li><b>Export</b><span>OTLP · Kafka · S3-compatible</span></li>
+          <li><b>Retention</b><span>configurable, P400D default</span></li>
+        </ul>
+      </article>
+
+      <article class="pillar" id="agents">
+        <div class="pillar-tag">
+          <span class="lbl">Agent plane</span>
+          <span class="lbl" style="color: var(--cyan-ink)">mcp/1.0</span>
+        </div>
+        <h3>An agent is a principal, not a shared API key in an env var.</h3>
+        <p>
+          Register the agent, bind it to the human it acts for, and hand it a grant with a ceiling:
+          scopes, time, call budget, network range. The MCP server only advertises tools the grant
+          covers, authorizes each call as it happens, and revocation lands mid-session.
+        </p>
+        <ul class="specs">
+          <li><b>Identity</b><span>agent:// principal, own keys</span></li>
+          <li><b>Delegation</b><span>acts-for chain, never exceeds</span></li>
+          <li><b>Ceiling</b><span>TTL, call budget, CIDR</span></li>
+          <li><b>Approval</b><span>human-in-loop per scope</span></li>
+          <li><b>Audit</b><span>every tool call, same stream</span></li>
+          <li><b>Revocation</b><span>propagates in &lt; 1s</span></li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============ CODE ============ -->
+  <section class="wrap sec" id="integrate">
+    <div class="sec-head">
+      <span class="lbl">Integration</span>
+      <h2>Ask the policy engine. Do not re-implement it in your handler.</h2>
+      <p>
+        Two surfaces, one decision path. Your application checks access the same way an agent's tool
+        call does — and both land in the stream you saw above.
+      </p>
+    </div>
+
+    <div class="panel code-shell">
+      <div class="tabs" role="tablist" aria-label="Integration examples">
+        <button class="tab" id="tab-oidc" role="tab" aria-selected="true" aria-controls="pane-oidc">
+          auth.ts <span class="fileno">— OIDC sign-in + policy check</span>
+        </button>
+        <button class="tab" id="tab-mcp" role="tab" aria-selected="false" aria-controls="pane-mcp">
+          grant.json <span class="fileno">— MCP agent scope</span>
+        </button>
+      </div>
+
+      <div id="pane-oidc" role="tabpanel" aria-labelledby="tab-oidc">
+<pre><span class="k">import</span> <span class="o">{</span> <span class="f">Portcullis</span> <span class="o">}</span> <span class="k">from</span> <span class="s">"@portcullis/sdk"</span><span class="o">;</span>
+
+<span class="k">const</span> <span class="f">auth</span> <span class="o">=</span> <span class="k">new</span> <span class="f">Portcullis</span><span class="o">({</span>
+  <span class="f">issuer</span><span class="o">:</span>   <span class="s">"https://id.northwind.example/realms/prod"</span><span class="o">,</span>
+  <span class="f">clientId</span><span class="o">:</span> <span class="s">"northwind-web"</span><span class="o">,</span>
+  <span class="c">// OAuth 2.1: PKCE is mandatory and the implicit flow is not implemented.</span>
+  <span class="f">challenge</span><span class="o">:</span> <span class="s">"S256"</span><span class="o">,</span>
+<span class="o">});</span>
+
+<span class="c">// Exchange the callback code for a tenant-scoped access token.</span>
+<span class="k">const</span> <span class="f">session</span> <span class="o">=</span> <span class="k">await</span> <span class="f">auth</span><span class="o">.</span><span class="f">callback</span><span class="o">(</span><span class="f">request</span><span class="o">.</span><span class="f">url</span><span class="o">);</span>
+
+<span class="c">// One round trip is enough: the decision carries its own reason.</span>
+<span class="k">const</span> <span class="f">decision</span> <span class="o">=</span> <span class="k">await</span> <span class="f">auth</span><span class="o">.</span><span class="f">check</span><span class="o">({</span>
+  <span class="f">subject</span><span class="o">:</span>  <span class="f">session</span><span class="o">.</span><span class="f">sub</span><span class="o">,</span>
+  <span class="f">action</span><span class="o">:</span>   <span class="s">"invoice:export"</span><span class="o">,</span>
+  <span class="f">resource</span><span class="o">:</span> <span class="s">`tenant/${</span><span class="f">session</span><span class="o">.</span><span class="f">tenant</span><span class="s">}/invoices/2026-Q2`</span><span class="o">,</span>
+<span class="o">});</span>
+
+<span class="k">if</span> <span class="o">(!</span><span class="f">decision</span><span class="o">.</span><span class="f">allow</span><span class="o">)</span> <span class="o">{</span>
+  <span class="c">// decision.reason -&gt; "role not in {finance.admin}"</span>
+  <span class="c">// decision.risk   -&gt; 12</span>
+  <span class="k">return</span> <span class="f">problem</span><span class="o">(</span><span class="n">403</span><span class="o">,</span> <span class="f">decision</span><span class="o">.</span><span class="f">reason</span><span class="o">);</span>
+<span class="o">}</span>
+
+<span class="k">return</span> <span class="f">streamInvoices</span><span class="o">(</span><span class="f">session</span><span class="o">.</span><span class="f">tenant</span><span class="o">);</span></pre>
+        <div class="code-foot">
+          <span>SDKs: typescript · go · rust · python · java · dotnet</span>
+          <span>median check 3.1 ms</span>
+          <span>p99 8.4 ms</span>
+          <span>local sidecar cache, 5 s TTL</span>
+        </div>
+      </div>
+
+      <div id="pane-mcp" role="tabpanel" aria-labelledby="tab-mcp" hidden>
+<pre><span class="c">$ portcullis grant issue --agent ops-copilot-7f2 --file grant.json</span>
+<span class="o">{</span>
+  <span class="f">"principal"</span><span class="o">:</span> <span class="s">"agent://ops-copilot-7f2"</span><span class="o">,</span>
+  <span class="f">"actsFor"</span><span class="o">:</span>   <span class="s">"m.arslanova@northwind.example"</span><span class="o">,</span>
+  <span class="f">"transport"</span><span class="o">:</span> <span class="s">"mcp/1.0"</span><span class="o">,</span>
+
+  <span class="c">// The MCP server advertises only the tools these scopes cover.</span>
+  <span class="f">"scopes"</span><span class="o">:</span> <span class="o">[</span><span class="s">"tickets:read"</span><span class="o">,</span> <span class="s">"deploys:read"</span><span class="o">,</span> <span class="s">"runbooks:read"</span><span class="o">],</span>
+
+  <span class="f">"ceiling"</span><span class="o">:</span> <span class="o">{</span>
+    <span class="f">"ttl"</span><span class="o">:</span>       <span class="s">"PT30M"</span><span class="o">,</span>
+    <span class="f">"maxCalls"</span><span class="o">:</span>  <span class="n">400</span><span class="o">,</span>
+    <span class="f">"network"</span><span class="o">:</span>   <span class="o">[</span><span class="s">"10.42.0.0/16"</span><span class="o">],</span>
+    <span class="f">"askHuman"</span><span class="o">:</span>  <span class="o">[</span><span class="s">"deploys:write"</span><span class="o">,</span> <span class="s">"tickets:delete"</span><span class="o">]</span>
+  <span class="o">},</span>
+
+  <span class="f">"audit"</span><span class="o">:</span> <span class="o">{</span> <span class="f">"stream"</span><span class="o">:</span> <span class="s">"auth.decisions"</span><span class="o">,</span> <span class="f">"retain"</span><span class="o">:</span> <span class="s">"P400D"</span> <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c">grant  g_01JZ8Q4M  issued   exp 2026-07-22T09:44:07Z  tools 6/19</span>
+
+<span class="c">$ portcullis grant revoke agent://indexer-3a1 --reason "scope drift"</span>
+<span class="c">revoked  3 sessions  propagated in 0.41s  tools withdrawn mid-session</span></pre>
+        <div class="code-foot">
+          <span>spec: model context protocol 1.0</span>
+          <span>tools filtered at handshake</span>
+          <span>each call re-authorized</span>
+          <span>revocation &lt; 1 s</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ANOMALY / RISK ============ -->
+  <section class="wrap sec" id="analytics">
+    <div class="sec-head">
+      <span class="lbl">Anomaly detection · risk scoring</span>
+      <h2>The signal arrives before the ticket does.</h2>
+      <p>
+        Risk is scored at decision time, against the subject's own thirty-day baseline. Cross 70 and
+        the policy engine escalates on its own — step-up, scope trim, or refusal — and the reason is
+        written in words a responder can act on.
+      </p>
+    </div>
+
+    <div class="panel chartcard">
+      <div class="chart-head">
+        <span class="lbl">Risk score · j.vasquez@northwind.example · trailing 24 h</span>
+        <span class="now mono">89 · critical · unacknowledged</span>
+      </div>
+
+      <svg class="chart" viewBox="0 0 600 120" role="img"
+           aria-label="Risk score for one subject over 24 hours, flat near 15 until 21:00 then climbing past the 70 threshold to 89.">
+        <defs>
+          <linearGradient id="riskFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--amber)" stop-opacity="0.24" />
+            <stop offset="100%" stop-color="var(--amber)" stop-opacity="0.02" />
+          </linearGradient>
+        </defs>
+
+        <line class="grid" x1="0" y1="10" x2="600" y2="10" />
+        <line class="grid" x1="0" y1="70" x2="600" y2="70" />
+        <line class="grid" x1="0" y1="110" x2="600" y2="110" />
+        <line class="thr" x1="0" y1="40" x2="600" y2="40" />
+        <text x="4" y="36">RISK 70 · ESCALATE</text>
+
+        <path class="area" d="M10,95 L30,92 L50,97 L70,90 L90,94 L110,88 L130,93 L150,86 L170,91 L190,85 L210,90 L230,84 L250,88 L270,82 L290,87 L310,80 L330,86 L350,78 L370,84 L390,74 L410,80 L430,70 L450,76 L470,62 L490,58 L510,46 L530,34 L550,26 L570,30 L590,21 L590,110 L10,110 Z" />
+        <path class="line drawlong" d="M10,95 L30,92 L50,97 L70,90 L90,94 L110,88 L130,93 L150,86 L170,91 L190,85 L210,90 L230,84 L250,88 L270,82 L290,87 L310,80 L330,86 L350,78 L370,84 L390,74 L410,80 L430,70 L450,76 L470,62" />
+        <path class="lineHot drawhot" d="M470,62 L490,58 L510,46 L530,34 L550,26 L570,30 L590,21" />
+        <circle class="fade-late" cx="590" cy="21" r="4" fill="var(--amber)" />
+        <circle class="fade-late" cx="590" cy="21" r="8" fill="none" stroke="var(--amber)" stroke-opacity="0.35" />
+      </svg>
+
+      <div class="chart-axis">
+        <span>09:14 −24h</span>
+        <span>18:00</span>
+        <span>00:00</span>
+        <span>06:00</span>
+        <span>now</span>
+      </div>
+    </div>
+
+    <div class="anom-grid">
+      <div class="panel det">
+        <div class="pane-head" style="border-radius: 3px 3px 0 0">
+          <span class="lbl">Detectors firing</span>
+          <span class="lbl count mono">3 open · 1 acked</span>
+        </div>
+
+        <div class="det-item">
+          <h3>Impossible travel</h3>
+          <span class="sev pill deny">critical</span>
+          <p>Two successful factors, 5,120 km apart, four minutes apart. The second was refused before a token existed.</p>
+          <span class="ev">45.86.200.19 <b>Frankfurt DE</b> → 94.132.18.7 <b>Tashkent UZ</b> · Δ 00:04:11 · evt_01JZ8Q4M2P</span>
+        </div>
+
+        <div class="det-item">
+          <h3>Cadence drift</h3>
+          <span class="sev pill stepup">high</span>
+          <p>This subject signs in between 08:40 and 09:20 UTC in 61 of the last 63 sessions. This one opened at 02:17.</p>
+          <span class="ev">baseline P30D · deviation 6.8σ · action <b>step-up mfa</b> · evt_01JZ8Q4K7T</span>
+        </div>
+
+        <div class="det-item">
+          <h3>Agent scope drift</h3>
+          <span class="sev pill trim">elevated</span>
+          <p>An agent asked for a write scope on 14 of 400 calls that it has never been granted, and the ceiling held each time.</p>
+          <span class="ev">agent://ops-copilot-7f2 · asked <b>tickets:write</b> · granted <b>tickets:read</b> · evt_01JZ8Q3X9B</span>
+        </div>
+
+        <div class="det-item">
+          <h3>Credential spray</h3>
+          <span class="sev pill deny">critical</span>
+          <p>Forty-one failures across thirty-nine accounts from a single /24 in ninety seconds. The range is now null-routed at the edge.</p>
+          <span class="ev">203.0.113.0/24 · 41 fail / 0 success · rate-limited 09:11:22 · evt_01JZ8Q2R4D</span>
+        </div>
+      </div>
+
+      <div class="panel ask">
+        <span class="lbl">Ask the auth stream</span>
+        <div class="ask-field">
+          <span class="caret">&gt;</span>
+          <span>who accessed the payroll export in the last 7 days?</span>
+        </div>
+        <p class="ask-a">
+          Three subjects, four events.
+          <b>m.arslanova@northwind.example</b> read it twice — 2026-07-18 and 2026-07-21 — under policy
+          <b>payroll.export</b>, both times after a WebAuthn factor.
+          <b>r.delacroix@northwind.example</b> read it once on 2026-07-19 under a temporary grant that
+          expired at <b>17:00:00Z</b> the same day and was not renewed.
+          <span class="hot">agent://finops-indexer-2b</span> requested the file body and received only the
+          manifest; the object scope was trimmed at call time.
+          No other principal holds a grant that would resolve.
+        </p>
+        <div class="cites">
+          <span class="cite">evt_01JZ4M8P1K</span>
+          <span class="cite">evt_01JZ5R2T7C</span>
+          <span class="cite">evt_01JZ6B9V3H</span>
+          <span class="cite">evt_01JZ7C1N8Q</span>
+        </div>
+        <p class="cta-note" style="line-height:1.6">
+          Answers are drawn from your own event store and cite the events they rest on. Nothing leaves
+          the deployment: the model runs beside the database, or you point it at one you already host.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DEPLOY ============ -->
+  <section class="wrap sec" id="deploy">
+    <div class="sec-head">
+      <span class="lbl">Deployment</span>
+      <h2>It runs where your data already is.</h2>
+      <p>
+        One binary, one Postgres. No control plane of ours in the path, no outbound connection unless
+        you configure one, and the same build in air-gapped environments as on the public internet.
+      </p>
+    </div>
+
+    <div class="deploy-grid">
+      <div class="panel term">
+        <div class="term-bar">
+          <span class="lbl">ops@bastion-01 — helm</span>
+          <span class="live" style="margin-left:auto"><span class="dot"></span> applied</span>
+        </div>
+<pre><span class="p">$</span> helm install portcullis oci<span class="o">://</span>registry.internal/portcullis <span class="o">\</span>
+    <span class="o">--version</span> 4.2.1 <span class="o">\</span>
+    <span class="o">--set</span> postgres.dsn<span class="o">=</span><span class="s">$PC_DSN</span> <span class="o">\</span>
+    <span class="o">--set</span> telemetry.egress<span class="o">=</span><span class="s">none</span>
+
+  <span class="ok">portcullis</span>   4.2.1     deployed    3/3 replicas
+  <span class="ok">migrations</span>   0142      applied     schema 4.2.1
+  <span class="ok">egress</span>       none      verified    0 outbound routes
+  <span class="ok">keys</span>         ed25519   generated   rotated P90D
+
+<span class="p">$</span> portcullis doctor
+  <span class="c">postgres 16.3 reachable · 41 ms</span>
+  <span class="c">jwks published at /.well-known/jwks.json</span>
+  <span class="c">scim endpoint live · 2 connectors registered</span>
+  <span class="c">mcp server listening on :7443 · 19 tools declared</span>
+  <span class="c">all checks passed</span></pre>
+      </div>
+
+      <div>
+        <div class="facts">
+          <div class="fact">
+            <b class="mono">220 MB</b>
+            <span>Resident memory per replica at 300 decisions per second.</span>
+          </div>
+          <div class="fact">
+            <b class="mono">1 dependency</b>
+            <span>PostgreSQL 15 or newer. No Redis, no queue, no sidecar required.</span>
+          </div>
+          <div class="fact">
+            <b class="mono">amd64 · arm64</b>
+            <span>Kubernetes, Nomad, Compose, or a systemd unit on a single host.</span>
+          </div>
+          <div class="fact">
+            <b class="mono">Apache-2.0</b>
+            <span>Core is open source. Read the policy engine before you trust it.</span>
+          </div>
+          <div class="fact">
+            <b class="mono">Air-gapped</b>
+            <span>Signed offline bundle, no licence callback, no telemetry beacon.</span>
+          </div>
+          <div class="fact">
+            <b class="mono">P400D</b>
+            <span>Default audit retention, tuned per tenant, exportable at any time.</span>
+          </div>
+        </div>
+
+        <div class="panel migrate">
+          <span class="lbl">Migration</span>
+          <span>
+            Import realms, clients, users and mappers from an existing Keycloak or Okta tenant, then
+            run both in parallel behind the same issuer until traffic has moved.
+          </span>
+          <span class="mono">portcullis import --from keycloak --dry-run</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-col foot-brand">
+        <a class="brand" href="#top">
+          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+            <g fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M2 3.2h16" />
+              <path d="M4 3.2v9.4l-1.4 3.9M8 3.2v11.2l-1 4.1M12 3.2v11.2l1 4.1M16 3.2v9.4l1.4 3.9" />
+              <path d="M2.9 7.4h14.2M3.4 11.3h13.2" stroke-opacity="0.55" />
+            </g>
+          </svg>
+          Portcullis
+        </a>
+        <p>
+          The identity control plane. Self-hosted, auditable, and honest about what it cannot see.
+        </p>
+      </div>
+
+      <div class="foot-col">
+        <h4>Platform</h4>
+        <ul>
+          <li><a href="#platform">Authorization</a></li>
+          <li><a href="#platform">Tenant isolation</a></li>
+          <li><a href="#integrate">Machine tokens</a></li>
+          <li><a href="#agents">Agent identity</a></li>
+        </ul>
+      </div>
+
+      <div class="foot-col">
+        <h4>Operate</h4>
+        <ul>
+          <li><a href="#analytics">Risk scoring</a></li>
+          <li><a href="#analytics">Anomaly detectors</a></li>
+          <li><a href="#deploy">Audit export</a></li>
+          <li><a href="#deploy">Deployment</a></li>
+        </ul>
+      </div>
+
+      <div class="foot-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="#integrate">SDK reference</a></li>
+          <li><a href="#integrate">MCP specification</a></li>
+          <li><a href="#deploy">Migration guide</a></li>
+          <li><a href="#deploy">Security disclosures</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="foot-bar">
+      <span>PORTCULLIS 4.2.1</span>
+      <span>APACHE-2.0 CORE</span>
+      <span>BUILD 2026.07.19-a41c9d2</span>
+      <span class="sp">Portcullis is a fictional product built for a design exploration. All data shown is invented.</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  /* ── Design-review appendix ──────────────────────────────────────────────
+     Not part of the direction — a harness for judging it. Amber and cyan are
+     the two tokens that change most between stocks, so the palette exists
+     mainly to prove the light variant is designed rather than inverted. */
+
+  .dvp-switch {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 900;
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    box-shadow: var(--shadow);
+  }
+
+  .dvp-switch button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--ink-3);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0 14px;
+    min-height: 40px;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
+  .dvp-switch button[aria-pressed="true"] {
+    background: var(--cyan-soft);
+    border: 1px solid var(--cyan-line);
+    color: var(--cyan-ink);
+  }
+
+  .dvp {
+    margin-top: 84px;
+    border-top: 1px solid var(--line);
+    background: var(--bg-deep);
+    padding: 44px 0 90px;
+  }
+
+  .dvp h2 { margin: 10px 0 10px; }
+  .dvp-note { color: var(--ink-2); max-width: 62ch; }
+
+  .dvp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: 1px;
+    margin-top: 26px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .dvp-sw {
+    background: var(--panel);
+    padding: 14px 15px 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .dvp-chip { height: 46px; border: 1px solid var(--line); border-radius: 2px; }
+
+  .dvp-sw b {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+
+  .dvp-sw code {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+  }
+</style>
+
+<div class="dvp-switch" role="group" aria-label="Preview theme">
+  <button type="button" data-mode="light" aria-pressed="false">Light</button>
+  <button type="button" data-mode="dark" aria-pressed="false">Dark</button>
+</div>
+
+<section class="dvp">
+  <div class="wrap">
+    <span class="lbl">Appendix · palette</span>
+    <h2>Both stocks, every token.</h2>
+    <p class="dvp-note">
+      Read from the live stylesheet, so these can never drift from what the page paints. Amber stays
+      attention and cyan stays live in both themes — but each is re-derived for the ground it sits on
+      rather than reused.
+    </p>
+
+    <div class="dvp-grid">
+      <div class="dvp-sw" data-token="--bg"><span class="dvp-chip" style="background: var(--bg)"></span><b>--bg</b><code></code></div>
+      <div class="dvp-sw" data-token="--bg-deep"><span class="dvp-chip" style="background: var(--bg-deep)"></span><b>--bg-deep</b><code></code></div>
+      <div class="dvp-sw" data-token="--panel"><span class="dvp-chip" style="background: var(--panel)"></span><b>--panel</b><code></code></div>
+      <div class="dvp-sw" data-token="--panel-2"><span class="dvp-chip" style="background: var(--panel-2)"></span><b>--panel-2</b><code></code></div>
+      <div class="dvp-sw" data-token="--panel-3"><span class="dvp-chip" style="background: var(--panel-3)"></span><b>--panel-3</b><code></code></div>
+      <div class="dvp-sw" data-token="--line"><span class="dvp-chip" style="background: var(--line)"></span><b>--line</b><code></code></div>
+      <div class="dvp-sw" data-token="--line-soft"><span class="dvp-chip" style="background: var(--line-soft)"></span><b>--line-soft</b><code></code></div>
+      <div class="dvp-sw" data-token="--ink"><span class="dvp-chip" style="background: var(--ink)"></span><b>--ink</b><code></code></div>
+      <div class="dvp-sw" data-token="--ink-2"><span class="dvp-chip" style="background: var(--ink-2)"></span><b>--ink-2</b><code></code></div>
+      <div class="dvp-sw" data-token="--ink-3"><span class="dvp-chip" style="background: var(--ink-3)"></span><b>--ink-3</b><code></code></div>
+      <div class="dvp-sw" data-token="--amber"><span class="dvp-chip" style="background: var(--amber)"></span><b>--amber</b><code></code></div>
+      <div class="dvp-sw" data-token="--amber-ink"><span class="dvp-chip" style="background: var(--amber-ink)"></span><b>--amber-ink</b><code></code></div>
+      <div class="dvp-sw" data-token="--cyan"><span class="dvp-chip" style="background: var(--cyan)"></span><b>--cyan</b><code></code></div>
+      <div class="dvp-sw" data-token="--cyan-ink"><span class="dvp-chip" style="background: var(--cyan-ink)"></span><b>--cyan-ink</b><code></code></div>
+      <div class="dvp-sw" data-token="--crit"><span class="dvp-chip" style="background: var(--crit)"></span><b>--crit</b><code></code></div>
+      <div class="dvp-sw" data-token="--crit-ink"><span class="dvp-chip" style="background: var(--crit-ink)"></span><b>--crit-ink</b><code></code></div>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    "use strict";
+
+    /* ---- design-review theme switch + live palette ---- */
+    var root = document.documentElement;
+
+    function paintPalette() {
+      var cs = getComputedStyle(root);
+
+      document.querySelectorAll(".dvp-sw").forEach(function (el) {
+        var value = cs.getPropertyValue(el.dataset.token).trim();
+        el.querySelector("code").textContent = value || "—";
+      });
+    }
+
+    function applyTheme(mode) {
+      root.dataset.theme = mode;
+
+      document.querySelectorAll(".dvp-switch button").forEach(function (b) {
+        b.setAttribute("aria-pressed", b.dataset.mode === mode ? "true" : "false");
+      });
+
+      requestAnimationFrame(paintPalette);
+    }
+
+    document.querySelectorAll(".dvp-switch button").forEach(function (b) {
+      b.addEventListener("click", function () { applyTheme(b.dataset.mode); });
+    });
+
+    applyTheme(
+      root.dataset.theme ||
+        (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+    );
+
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /* ---- tabs ---- */
+    var tabs = [
+      { btn: document.getElementById("tab-oidc"), pane: document.getElementById("pane-oidc") },
+      { btn: document.getElementById("tab-mcp"),  pane: document.getElementById("pane-mcp") }
+    ];
+
+    function select(i) {
+      tabs.forEach(function (t, j) {
+        var on = i === j;
+        t.btn.setAttribute("aria-selected", on ? "true" : "false");
+        if (on) { t.pane.removeAttribute("hidden"); } else { t.pane.setAttribute("hidden", ""); }
+      });
+    }
+
+    tabs.forEach(function (t, i) {
+      if (!t.btn) return;
+      t.btn.addEventListener("click", function () { select(i); });
+      t.btn.addEventListener("keydown", function (e) {
+        if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+          e.preventDefault();
+          var next = (i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length;
+          select(next);
+          tabs[next].btn.focus();
+        }
+      });
+    });
+
+    if (reduce) return;
+
+    /* ---- seeded counters (no Math.random; layout never depends on JS) ---- */
+    var seqDec    = ["18,442", "18,507", "18,463", "18,590", "18,521", "18,448", "18,612", "18,536"];
+    var seqP99    = ["8.4", "8.1", "8.6", "8.3", "9.0", "8.2", "8.7", "8.5"];
+    var seqAgents = ["214", "216", "215", "219", "221", "218", "217", "220"];
+    var seqRate   = ["312 / s", "308 / s", "319 / s", "314 / s", "302 / s", "321 / s"];
+
+    var elDec = document.getElementById("k-dec");
+    var elP99 = document.getElementById("k-p99");
+    var elAgt = document.getElementById("k-agents");
+    var elRate = document.getElementById("feed-rate");
+    var elClock = document.getElementById("clock");
+
+    var i = 0;
+    setInterval(function () {
+      i++;
+      if (elDec) elDec.textContent = seqDec[i % seqDec.length];
+      if (elP99) elP99.textContent = seqP99[i % seqP99.length];
+      if (elAgt) elAgt.textContent = seqAgents[i % seqAgents.length];
+      if (elRate) elRate.textContent = seqRate[i % seqRate.length];
+    }, 2400);
+
+    /* ---- clock, advancing from the seeded base ---- */
+    var t = 9 * 3600 + 14 * 60 + 7;
+
+    function stamp(secs) {
+      var h = Math.floor(secs / 3600) % 24;
+      var m = Math.floor(secs / 60) % 60;
+      var s = secs % 60;
+      function pad(n) { return n < 10 ? "0" + n : "" + n; }
+      return pad(h) + ":" + pad(m) + ":" + pad(s);
+    }
+
+    setInterval(function () {
+      t += 1;
+      if (elClock) elClock.textContent = stamp(t) + "Z";
+    }, 1000);
+
+    /* ---- decision feed ---- */
+    var events = [
+      { c: "allow",  v: "ALLOW",      m: "<em>vacancy.read</em> — a.tulegenova, refresh rotated, 1 hop" },
+      { c: "trim",   v: "SCOPE_TRIM", m: "<em>finops-indexer-2b</em> asked files:read, granted manifest:read" },
+      { c: "issue",  v: "ISSUE",      m: "<em>svc-ledger-poll</em> m2m token, aud=billing, ttl 300s" },
+      { c: "deny",   v: "DENY",       m: "<em>contract.sign</em> — p.novak, tenant boundary lattice ≠ northwind" },
+      { c: "allow",  v: "ALLOW",      m: "<em>runbook.read</em> — agent://ops-copilot-7f2, call 118 of 400" },
+      { c: "stepup", v: "STEP_UP",    m: "<em>k.mensah</em> risk 64 — new device fingerprint, WebAuthn sent" },
+      { c: "allow",  v: "ALLOW",      m: "<em>tenant.read.self</em> — m.arslanova, cached decision, 0.9 ms" },
+      { c: "revoke", v: "REVOKE",     m: "<em>pk_live_4a77</em> — key rotated by ci-runner-14, 2 sessions cut" },
+      { c: "deny",   v: "DENY",       m: "<em>payroll.export</em> — contractor.hsu, role not in {finance.admin}" },
+      { c: "allow",  v: "ALLOW",      m: "<em>scim.provision</em> — connector lattice-hr, 6 users upserted" }
+    ];
+
+    var feed = document.getElementById("feed");
+    var gaps = [3, 2, 5, 4, 2, 6, 3, 4];
+    var e = 0;
+    var ft = t;
+
+    setInterval(function () {
+      if (!feed) return;
+      var ev = events[e % events.length];
+      ft += gaps[e % gaps.length];
+      e++;
+
+      var li = document.createElement("li");
+      li.className = "slide-in";
+      li.innerHTML =
+        '<span class="ts">' + stamp(ft) + '</span>' +
+        '<span class="msg"><span class="vd ' + ev.c + '">' + ev.v + "</span> " + ev.m + "</span>";
+
+      feed.insertBefore(li, feed.firstChild);
+
+      while (feed.children.length > 7) {
+        feed.removeChild(feed.lastChild);
+      }
+    }, 3200);
+  })();
+</script>

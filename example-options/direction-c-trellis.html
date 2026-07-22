@@ -1,0 +1,1746 @@
+<title>Trellis — authorization as a graph</title>
+
+<style>
+  /* ============================================================
+     TRELLIS — direction C, "the graph"
+     Light-first, API-first, diagrammatic. Palette as tokens so the
+     viewer theme (media query OR data-theme stamp) always wins.
+     ============================================================ */
+
+  :root {
+    --ground:      #FBFBFD;
+    --ground-2:    #F3F3F8;
+    --surface:     #FFFFFF;
+    --surface-2:   #F7F7FB;
+    --line:        #E3E3EE;
+    --line-strong: #C9C9DC;
+    --ink:         #16182B;
+    --ink-2:       #4B4E68;
+    --ink-3:       #7A7D96;
+    --violet:      #4B3BD6;
+    --violet-ink:  #4B3BD6;
+    --violet-soft: #EEECFB;
+    --on-violet:   #FFFFFF;
+    --coral:       #FF6B5A;
+    --coral-ink:   #D4432F;
+    --coral-soft:  #FFEFEC;
+    --ok:          #147A52;
+    --ok-soft:     #E4F4EC;
+    --warn:        #9A6B05;
+    --danger:      #C6392B;
+    --danger-soft: #FCEBE8;
+    --shadow:      0 1px 2px rgba(22, 24, 43, .05), 0 12px 32px -18px rgba(22, 24, 43, .28);
+    --shadow-flat: 0 1px 0 rgba(22, 24, 43, .04);
+
+    --tk-kw:  #4B3BD6;
+    --tk-str: #0E6B48;
+    --tk-num: #C4462F;
+    --tk-com: #8B8EA6;
+    --tk-pun: #9195AC;
+
+    --sans: "Avenir Next", "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", "Cascadia Code", Consolas, "SF Mono", Menlo, monospace;
+
+    --gut: clamp(1rem, 3.2vw, 2rem);
+    --wrap: 1180px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:      #0C0D17;
+      --ground-2:    #12131F;
+      --surface:     #171927;
+      --surface-2:   #1D1F2F;
+      --line:        #282B40;
+      --line-strong: #3E4260;
+      --ink:         #E9EAF5;
+      --ink-2:       #AEB2CC;
+      --ink-3:       #82869E;
+      --violet:      #8B7BFF;
+      --violet-ink:  #A79BFF;
+      --violet-soft: #211E3E;
+      --on-violet:   #0C0D17;
+      --coral:       #FF8B7A;
+      --coral-ink:   #FFA192;
+      --coral-soft:  #33201D;
+      --ok:          #45CC91;
+      --ok-soft:     #102A22;
+      --warn:        #E0A63A;
+      --danger:      #FF7A6B;
+      --danger-soft: #331C1B;
+      --shadow:      0 1px 2px rgba(0, 0, 0, .5), 0 16px 40px -20px rgba(0, 0, 0, .8);
+      --shadow-flat: 0 1px 0 rgba(0, 0, 0, .3);
+
+      --tk-kw:  #A79BFF;
+      --tk-str: #57CE9A;
+      --tk-num: #FFA192;
+      --tk-com: #6E7290;
+      --tk-pun: #7C8099;
+    }
+  }
+
+  :root[data-theme="light"] {
+    --ground:      #FBFBFD;
+    --ground-2:    #F3F3F8;
+    --surface:     #FFFFFF;
+    --surface-2:   #F7F7FB;
+    --line:        #E3E3EE;
+    --line-strong: #C9C9DC;
+    --ink:         #16182B;
+    --ink-2:       #4B4E68;
+    --ink-3:       #7A7D96;
+    --violet:      #4B3BD6;
+    --violet-ink:  #4B3BD6;
+    --violet-soft: #EEECFB;
+    --on-violet:   #FFFFFF;
+    --coral:       #FF6B5A;
+    --coral-ink:   #D4432F;
+    --coral-soft:  #FFEFEC;
+    --ok:          #147A52;
+    --ok-soft:     #E4F4EC;
+    --warn:        #9A6B05;
+    --danger:      #C6392B;
+    --danger-soft: #FCEBE8;
+    --shadow:      0 1px 2px rgba(22, 24, 43, .05), 0 12px 32px -18px rgba(22, 24, 43, .28);
+    --shadow-flat: 0 1px 0 rgba(22, 24, 43, .04);
+    --tk-kw:  #4B3BD6;
+    --tk-str: #0E6B48;
+    --tk-num: #C4462F;
+    --tk-com: #8B8EA6;
+    --tk-pun: #9195AC;
+  }
+
+  :root[data-theme="dark"] {
+    --ground:      #0C0D17;
+    --ground-2:    #12131F;
+    --surface:     #171927;
+    --surface-2:   #1D1F2F;
+    --line:        #282B40;
+    --line-strong: #3E4260;
+    --ink:         #E9EAF5;
+    --ink-2:       #AEB2CC;
+    --ink-3:       #82869E;
+    --violet:      #8B7BFF;
+    --violet-ink:  #A79BFF;
+    --violet-soft: #211E3E;
+    --on-violet:   #0C0D17;
+    --coral:       #FF8B7A;
+    --coral-ink:   #FFA192;
+    --coral-soft:  #33201D;
+    --ok:          #45CC91;
+    --ok-soft:     #102A22;
+    --warn:        #E0A63A;
+    --danger:      #FF7A6B;
+    --danger-soft: #331C1B;
+    --shadow:      0 1px 2px rgba(0, 0, 0, .5), 0 16px 40px -20px rgba(0, 0, 0, .8);
+    --shadow-flat: 0 1px 0 rgba(0, 0, 0, .3);
+    --tk-kw:  #A79BFF;
+    --tk-str: #57CE9A;
+    --tk-num: #FFA192;
+    --tk-com: #6E7290;
+    --tk-pun: #7C8099;
+  }
+
+  /* ---------- base ---------- */
+
+  * { box-sizing: border-box; }
+
+  .tr-page {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+  }
+
+  .tr-page :focus-visible {
+    outline: 2px solid var(--violet);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  .tr-page a { color: inherit; text-decoration: none; }
+
+  /* every label in every diagram is set in the utility face */
+  .tr-page svg text { font-family: var(--mono); }
+
+  .tr-page p { margin: 0; }
+
+  .tr-page h1, .tr-page h2, .tr-page h3, .tr-page h4 {
+    margin: 0;
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: var(--wrap);
+    margin-inline: auto;
+    padding-inline: var(--gut);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* the lattice the page grows on */
+  .rails {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+  }
+  .rails-inner {
+    width: 100%;
+    max-width: var(--wrap);
+    padding-inline: var(--gut);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .rails-inner i { border-left: 1px solid var(--line); opacity: .7; }
+  .rails-inner i:last-child { border-right: 1px solid var(--line); }
+  @media (max-width: 720px) {
+    .rails-inner { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .skip {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: var(--ink);
+    color: var(--ground);
+    padding: .6rem 1rem;
+    font: 500 .85rem/1 var(--mono);
+    z-index: 50;
+  }
+  .skip:focus { left: .5rem; top: .5rem; }
+
+  /* ---------- typography helpers ---------- */
+
+  .mono { font-family: var(--mono); }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--violet-ink);
+    margin: 0;
+  }
+
+  .lede {
+    color: var(--ink-2);
+    font-size: 1.0625rem;
+    line-height: 1.62;
+    max-width: 62ch;
+  }
+
+  /* ---------- header ---------- */
+
+  .hdr {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: var(--ground);
+    border-bottom: 1px solid var(--line);
+  }
+  .hdr-in {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    height: 60px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: .62rem;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    font-size: 1.02rem;
+    margin-right: auto;
+  }
+  .brand svg { display: block; }
+  .brand .ver {
+    font: 500 .66rem/1 var(--mono);
+    color: var(--ink-3);
+    border: 1px solid var(--line);
+    padding: .22rem .34rem;
+    border-radius: 2px;
+    letter-spacing: .04em;
+  }
+  .nav { display: flex; gap: 1.5rem; align-items: center; }
+  .nav a {
+    font-size: .875rem;
+    color: var(--ink-2);
+    padding: .35rem 0;
+    border-bottom: 1px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  .nav a:hover { color: var(--ink); border-bottom-color: var(--violet); }
+  @media (max-width: 900px) { .nav { display: none; } }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    font: 500 .875rem/1 var(--sans);
+    padding: .68rem 1.05rem;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s;
+    min-height: 44px;
+  }
+  .btn-primary {
+    background: var(--violet);
+    color: var(--on-violet);
+    border-color: var(--violet);
+    font-weight: 600;
+  }
+  .btn-primary:hover { filter: brightness(1.08); }
+
+  .btn-ghost {
+    background: var(--surface);
+    border-color: var(--line-strong);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: .8125rem;
+  }
+  .btn-ghost:hover { border-color: var(--violet); color: var(--violet-ink); }
+  .btn-sm { min-height: 36px; padding: .45rem .8rem; }
+
+  /* ---------- hero ---------- */
+
+  .hero { padding: clamp(3rem, 7vw, 5.5rem) 0 0; }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, .85fr);
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    align-items: end;
+  }
+  @media (max-width: 880px) { .hero-grid { grid-template-columns: 1fr; align-items: start; } }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 6.1vw, 4.35rem);
+    line-height: 1.02;
+    letter-spacing: -.038em;
+    margin: 1.15rem 0 0;
+  }
+  .hero h1 .lift { color: var(--violet-ink); }
+  .hero-sub { margin-top: 1.35rem; }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 2rem; }
+
+  .facts {
+    border-top: 1px solid var(--line);
+    display: grid;
+    gap: 0;
+  }
+  .fact {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: .62rem 0;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: .78rem;
+  }
+  .fact b { color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .fact span { color: var(--ink-3); letter-spacing: .04em; }
+
+  /* ---------- graph panel ---------- */
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    box-shadow: var(--shadow);
+  }
+  .panel-bar {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    flex-wrap: wrap;
+    padding: .6rem .85rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
+    border-radius: 5px 5px 0 0;
+    font-family: var(--mono);
+    font-size: .74rem;
+    color: var(--ink-3);
+    letter-spacing: .02em;
+  }
+  .panel-bar .title { color: var(--ink-2); }
+  .panel-bar .spacer { margin-left: auto; }
+  .chip {
+    font-family: var(--mono);
+    font-size: .7rem;
+    padding: .18rem .42rem;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    color: var(--ink-3);
+    background: var(--surface);
+    white-space: nowrap;
+  }
+  .chip-v { color: var(--violet-ink); border-color: color-mix(in srgb, var(--violet) 32%, var(--line)); background: var(--violet-soft); }
+  .chip-c { color: var(--coral-ink); border-color: color-mix(in srgb, var(--coral) 40%, var(--line)); background: var(--coral-soft); }
+  .chip-ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 35%, var(--line)); background: var(--ok-soft); }
+  .chip-no { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 35%, var(--line)); background: var(--danger-soft); }
+
+  .graph-wrap { margin-top: clamp(2.25rem, 5vw, 3.5rem); }
+  .graph-scroll { overflow-x: auto; overscroll-behavior-x: contain; }
+  .graph-svg { display: block; width: 100%; height: auto; }
+  @media (max-width: 900px) {
+    .graph-svg { min-width: 780px; }
+    .topo svg { min-width: 720px; }
+  }
+  .pan-hint { display: none; }
+  @media (max-width: 900px) { .pan-hint { display: inline; } }
+
+  .graph-foot {
+    border-top: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  @media (max-width: 780px) { .graph-foot { grid-template-columns: 1fr; } }
+  .eval {
+    padding: .8rem .95rem;
+    font-family: var(--mono);
+    font-size: .745rem;
+    line-height: 1.75;
+    color: var(--ink-3);
+    display: flex;
+    flex-direction: column;
+    gap: .28rem;
+    min-width: 0;
+  }
+  .eval + .eval { border-left: 1px solid var(--line); }
+  @media (max-width: 780px) { .eval + .eval { border-left: 0; border-top: 1px solid var(--line); } }
+  .eval .q { color: var(--ink); overflow-x: auto; white-space: nowrap; }
+  .eval .r { display: flex; gap: .45rem; align-items: center; flex-wrap: wrap; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem 1.15rem;
+    padding: .7rem .95rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: .715rem;
+    color: var(--ink-3);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: .42rem; }
+  .legend i {
+    width: 9px; height: 9px; display: inline-block;
+    border: 1.4px solid var(--ink-3);
+    background: var(--surface);
+  }
+  .lg-principal { border-radius: 50%; }
+  .lg-role { transform: rotate(0deg); }
+  .lg-resource { border-radius: 1px; }
+  .lg-agent { border-color: var(--coral) !important; background: var(--coral-soft) !important; transform: rotate(45deg); }
+  .lg-deny { border: 0 !important; height: 0 !important; border-top: 1.6px dashed var(--danger) !important; width: 16px !important; background: none !important; }
+
+  /* ---------- section scaffolding ---------- */
+
+  .sec { padding: clamp(3.5rem, 8vw, 6rem) 0; border-top: 1px solid var(--line); }
+  .sec-alt { background: var(--ground-2); }
+
+  .sec-head {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: clamp(1rem, 3vw, 2.5rem);
+    padding-bottom: 1.6rem;
+    border-bottom: 1px solid var(--line);
+    align-items: start;
+  }
+  @media (max-width: 720px) { .sec-head { grid-template-columns: 1fr; gap: .75rem; } }
+  .sec-head h2 {
+    font-size: clamp(1.65rem, 3.3vw, 2.4rem);
+    letter-spacing: -.028em;
+    line-height: 1.1;
+  }
+  .sec-head .lede { margin-top: .85rem; }
+  .sec-head .tag {
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding-top: .45rem;
+  }
+
+  /* ---------- pillars ---------- */
+
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  @media (max-width: 900px) { .pillars { grid-template-columns: 1fr; } }
+  .pillar {
+    padding: 2rem clamp(1.1rem, 2.2vw, 1.9rem) 2rem;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+  }
+  .pillar + .pillar { border-left: 1px solid var(--line); }
+  @media (max-width: 900px) { .pillar + .pillar { border-left: 0; } }
+  .pillar:first-child { padding-left: 0; }
+  .pillar:last-child { padding-right: 0; }
+  @media (max-width: 900px) { .pillar { padding-left: 0; padding-right: 0; } }
+  .pillar h3 {
+    font-size: 1.2rem;
+    letter-spacing: -.02em;
+    line-height: 1.25;
+  }
+  .pillar p { color: var(--ink-2); font-size: .945rem; line-height: 1.62; }
+  .pillar .kicker {
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .pillar-motif { height: 46px; }
+  .pillar-motif svg { display: block; height: 46px; width: auto; max-width: 100%; }
+  .spec {
+    list-style: none;
+    margin: auto 0 0;
+    padding: 1rem 0 0;
+    border-top: 1px solid var(--line);
+    display: grid;
+    gap: .42rem;
+    font-family: var(--mono);
+    font-size: .755rem;
+    color: var(--ink-2);
+  }
+  .spec li { display: grid; grid-template-columns: 12px 1fr; gap: .55rem; align-items: start; }
+  .spec li::before {
+    content: "";
+    width: 6px; height: 6px;
+    margin-top: .46rem;
+    background: var(--violet);
+    border-radius: 1px;
+  }
+  .pillar-agent .spec li::before { background: var(--coral); }
+
+  /* ---------- code ---------- */
+
+  .code-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-top: 2.25rem;
+  }
+  @media (max-width: 900px) { .code-grid { grid-template-columns: 1fr; } }
+
+  pre {
+    margin: 0;
+    overflow-x: auto;
+    padding: 1rem 1.1rem 1.2rem;
+    font-family: var(--mono);
+    font-size: .795rem;
+    line-height: 1.72;
+    color: var(--ink);
+    tab-size: 2;
+  }
+  code { font-family: var(--mono); }
+  .kw { color: var(--tk-kw); }
+  .st { color: var(--tk-str); }
+  .nm { color: var(--tk-num); }
+  .cm { color: var(--tk-com); font-style: normal; }
+  .pn { color: var(--tk-pun); }
+  .pr { color: var(--ink-2); }
+  .ag { color: var(--coral-ink); }
+
+  .code-num { counter-reset: ln; }
+  .code-num .l { display: block; counter-increment: ln; }
+  .code-num .l::before {
+    content: counter(ln);
+    display: inline-block;
+    width: 2.2ch;
+    margin-right: 1.35rem;
+    text-align: right;
+    color: var(--ink-3);
+    opacity: .65;
+    user-select: none;
+  }
+
+  .policy-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 1.25rem;
+    margin-top: 2.25rem;
+  }
+  @media (max-width: 940px) { .policy-grid { grid-template-columns: 1fr; } }
+
+  .checks { display: grid; }
+  .check {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: .5rem 1rem;
+    align-items: center;
+    padding: .72rem .95rem;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: .755rem;
+  }
+  .check:last-child { border-bottom: 0; }
+  .check .subj { color: var(--ink); min-width: 0; overflow-x: auto; white-space: nowrap; }
+  .check .path { grid-column: 1 / -1; color: var(--ink-3); font-size: .7rem; min-width: 0; overflow-x: auto; white-space: nowrap; }
+  .check .verdict { display: inline-flex; gap: .4rem; align-items: center; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--ink-3); }
+
+  /* ---------- deploy ---------- */
+
+  .deploy-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 2.25rem;
+  }
+  @media (max-width: 900px) { .deploy-grid { grid-template-columns: 1fr; } }
+  .shape {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1.15rem 1.15rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: .65rem;
+  }
+  .shape h4 {
+    font-family: var(--mono);
+    font-size: .8rem;
+    letter-spacing: .02em;
+    color: var(--violet-ink);
+    font-weight: 500;
+  }
+  .shape p { color: var(--ink-2); font-size: .89rem; line-height: 1.58; }
+  .shape .cmd {
+    margin-top: auto;
+    font-family: var(--mono);
+    font-size: .73rem;
+    color: var(--ink-3);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: .5rem .6rem;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .req {
+    margin-top: 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem .5rem;
+  }
+  .migrate {
+    margin-top: 1.6rem;
+    padding: 1rem 1.15rem;
+    border: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--surface);
+    font-size: .9rem;
+    color: var(--ink-2);
+    max-width: 70ch;
+  }
+  .migrate code {
+    color: var(--violet-ink);
+    background: var(--violet-soft);
+    padding: .1rem .3rem;
+    border-radius: 2px;
+    font-size: .82em;
+  }
+
+  .topo { margin-top: 2rem; }
+  .topo svg { display: block; width: 100%; height: auto; }
+
+  /* ---------- footer ---------- */
+
+  .ftr { border-top: 1px solid var(--line); padding: 3rem 0 2rem; background: var(--ground); }
+  .ftr-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) repeat(4, minmax(0, 1fr));
+    gap: 2rem;
+  }
+  @media (max-width: 880px) { .ftr-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .ftr h5 {
+    margin: 0 0 .85rem;
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+  .ftr ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+  .ftr ul a { font-size: .875rem; color: var(--ink-2); }
+  .ftr ul a:hover { color: var(--violet-ink); }
+  .ftr-note { color: var(--ink-2); font-size: .875rem; max-width: 34ch; margin-top: .9rem; }
+  .ftr-bot {
+    margin-top: 2.75rem;
+    padding-top: 1.15rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem 1.35rem;
+    font-family: var(--mono);
+    font-size: .72rem;
+    color: var(--ink-3);
+  }
+
+  /* ---------- SVG graph ---------- */
+
+  .g-node-label { font-family: var(--mono); font-size: 12px; fill: var(--ink); letter-spacing: -.01em; }
+  .g-edge-label { font-family: var(--mono); font-size: 10.5px; fill: var(--ink-2); letter-spacing: -.01em; }
+  .g-edge-label.deny { fill: var(--danger); }
+  .g-edge-label.ag { fill: var(--coral-ink); }
+  .g-boundary-label { font-family: var(--mono); font-size: 10.5px; fill: var(--ink-3); letter-spacing: .06em; }
+
+  .n-box { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.2; }
+  .n-box-agent { fill: var(--coral-soft); stroke: var(--coral); stroke-width: 1.5; }
+  .n-glyph { fill: var(--surface); stroke: var(--violet); stroke-width: 1.5; }
+  .n-glyph-res { fill: var(--violet-soft); stroke: var(--violet); stroke-width: 1.3; }
+  .n-glyph-agent { fill: var(--coral); stroke: var(--coral); stroke-width: 1.3; }
+
+  .edge { fill: none; stroke: var(--line-strong); stroke-width: 1.4; }
+  .edge-strong { stroke: var(--violet); stroke-width: 1.5; }
+  .edge-agent { stroke: var(--coral); stroke-width: 1.5; stroke-dasharray: none; }
+  .edge-deny { stroke: var(--danger); stroke-width: 1.3; }
+  .pill { fill: var(--surface); }
+  .boundary { fill: none; stroke: var(--line-strong); stroke-width: 1.1; stroke-dasharray: 4 4; }
+
+  /* draw-in */
+  .edge { stroke-dasharray: 100; stroke-dashoffset: 100; animation: e-draw .85s cubic-bezier(.4, 0, .18, 1) both; animation-delay: var(--d, 0s); }
+  .edge-deny.edge { animation-name: e-draw-deny; }
+  .g-node { opacity: 0; animation: n-in .48s cubic-bezier(.2, .8, .3, 1) both; animation-delay: var(--d, 0s); }
+  .g-lab { opacity: 0; animation: l-in .4s ease-out both; animation-delay: var(--d, 0s); }
+  .g-frame { opacity: 0; animation: l-in .5s ease-out both; animation-delay: var(--d, 0s); }
+
+  @keyframes e-draw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+  @keyframes e-draw-deny {
+    from { stroke-dashoffset: 100; stroke-dasharray: 100; }
+    to   { stroke-dashoffset: 0;  stroke-dasharray: 3.2 2.6; }
+  }
+  @keyframes n-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes l-in { from { opacity: 0; } to { opacity: 1; } }
+
+  .edge-deny { stroke-dasharray: 3.2 2.6; }
+
+  /* scroll reveals, only where supported — no JS */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .reveal {
+        animation: rv linear both;
+        animation-timeline: view();
+        animation-range: entry 8% cover 26%;
+      }
+      @keyframes rv {
+        from { opacity: 0; transform: translateY(14px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .edge { animation: none; stroke-dashoffset: 0; stroke-dasharray: none; }
+    .edge-deny { stroke-dasharray: 3.2 2.6; }
+    .g-node, .g-lab, .g-frame { animation: none; opacity: 1; transform: none; }
+    .graph-pulses { display: none; }
+    .reveal { animation: none; opacity: 1; transform: none; }
+    .tr-page * { transition-duration: .001s !important; }
+  }
+</style>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<div class="tr-page">
+
+  <div class="rails" aria-hidden="true">
+    <div class="rails-inner"><i></i><i></i><i></i><i></i></div>
+  </div>
+
+  <!-- ============ HEADER ============ -->
+  <header class="hdr">
+    <div class="wrap hdr-in">
+      <a class="brand" href="#main" aria-label="Trellis, home">
+        <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+          <path d="M3 19 L11 3 L19 19" fill="none" stroke="var(--violet)" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M6 12.5 H16 M4.6 16 H17.4" stroke="var(--line-strong)" stroke-width="1.2"/>
+          <circle cx="11" cy="3" r="2.1" fill="var(--surface)" stroke="var(--violet)" stroke-width="1.6"/>
+          <circle cx="3" cy="19" r="2.1" fill="var(--surface)" stroke="var(--violet)" stroke-width="1.6"/>
+          <circle cx="19" cy="19" r="2.1" fill="var(--coral)" stroke="var(--coral)" stroke-width="1.6"/>
+        </svg>
+        Trellis
+        <span class="ver">v2.7</span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#pillars">Platform</a>
+        <a href="#integrate">Integrate</a>
+        <a href="#policy">Policy</a>
+        <a href="#operate">Self-host</a>
+        <a href="#docs">Docs</a>
+      </nav>
+      <a class="btn btn-ghost btn-sm" href="#integrate">trellis up --dev</a>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <p class="eyebrow">Identity &amp; authorization · self-hosted</p>
+            <h1>Authorization is a graph.<br><span class="lift">Model it like one.</span></h1>
+            <p class="lede hero-sub">
+              Trellis stores subjects, resources and the relations between them in one lattice, then answers
+              <span class="mono">check(subject, permission, resource)</span> in single-digit milliseconds. A partner
+              company's service account and an AI agent acting for one of your users join the same way your own
+              employees do — as nodes, with edges you can read, audit and revoke.
+            </p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#integrate">Read the quickstart</a>
+              <a class="btn btn-ghost" href="#operate">Deployment topologies</a>
+            </div>
+          </div>
+          <div class="facts" aria-label="Platform facts">
+            <div class="fact"><span>p99 check</span><b>2.1 ms</b></div>
+            <div class="fact"><span>relations stored</span><b>1.4 B</b></div>
+            <div class="fact"><span>tenants per node</span><b>25 000</b></div>
+            <div class="fact"><span>runtime deps</span><b>postgres</b></div>
+            <div class="fact"><span>licence</span><b>apache-2.0</b></div>
+          </div>
+        </div>
+
+        <!-- ---------- the graph ---------- -->
+        <div class="panel graph-wrap">
+          <div class="panel-bar">
+            <span class="title">graph explorer</span>
+            <span class="chip chip-v">tenant: acme-prod</span>
+            <span class="spacer"></span>
+            <span class="chip">6 principals</span>
+            <span class="chip">4 resources</span>
+            <span class="chip">11 relations</span>
+            <span class="chip pan-hint">drag to pan →</span>
+          </div>
+
+          <div class="graph-scroll" tabindex="0" role="img"
+               aria-label="An authorization graph. Two users are members of the group platform-eng, which assumes the role release-manager; that role can deploy repo checkout-api and can read secret stripe-live. The user s.varga delegates to the AI agent atlas-mcp, which issues the scoped session mcp-4f2a; that session can read dataset events-2026 but is denied secret stripe-live. The external org northwind owns the machine-to-machine client nw-m2m, which can write to api orders.v2. All four resources sit inside the isolation boundary of tenant acme-prod.">
+            <svg class="graph-svg" viewBox="0 0 1000 540" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="tr-dots" width="22" height="22" patternUnits="userSpaceOnUse">
+                  <circle cx="1" cy="1" r=".8" fill="var(--line-strong)" opacity=".5"/>
+                </pattern>
+                <marker id="ah-n" markerWidth="9" markerHeight="8" refX="8.6" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+                  <path d="M0.6 0.6 L8.6 4 L0.6 7.4 Z" fill="var(--line-strong)"/>
+                </marker>
+                <marker id="ah-v" markerWidth="9" markerHeight="8" refX="8.6" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+                  <path d="M0.6 0.6 L8.6 4 L0.6 7.4 Z" fill="var(--violet)"/>
+                </marker>
+                <marker id="ah-c" markerWidth="9" markerHeight="8" refX="8.6" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+                  <path d="M0.6 0.6 L8.6 4 L0.6 7.4 Z" fill="var(--coral)"/>
+                </marker>
+                <marker id="ah-d" markerWidth="8" markerHeight="7" refX="7.6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
+                  <path d="M0.6 0.6 L7.6 3.5 L0.6 6.4 Z" fill="var(--danger)"/>
+                </marker>
+
+                <!-- traversal paths for the evaluation pulses -->
+                <path id="tr-t1" d="M206 86 C246 86 246 118 286 118 L386 118 L386 230 L486 230 C580 230 600 86 706 86"/>
+                <path id="tr-t2" d="M111 180 L111 338 L206 338 L486 338 C596 338 596 322 706 322"/>
+              </defs>
+
+              <rect x="0" y="0" width="1000" height="540" fill="url(#tr-dots)"/>
+
+              <!-- tenant isolation boundary -->
+              <g class="g-frame" style="--d:.15s">
+                <rect class="boundary" x="674" y="36" width="302" height="478" rx="6"/>
+                <rect x="686" y="28" width="228" height="16" fill="var(--surface)"/>
+                <text class="g-boundary-label" x="694" y="40">tenant · acme-prod · isolated</text>
+              </g>
+
+              <!-- ============ EDGES ============ -->
+
+              <!-- e1 dana → group -->
+              <path class="edge" style="--d:.38s" pathLength="100" marker-end="url(#ah-n)"
+                    d="M206 86 C246 86 246 118 286 118"/>
+              <!-- e2 varga → group -->
+              <path class="edge" style="--d:.48s" pathLength="100" marker-end="url(#ah-n)"
+                    d="M206 158 C246 158 246 118 286 118"/>
+              <!-- e3 group → role -->
+              <path class="edge" style="--d:.98s" pathLength="100" marker-end="url(#ah-n)"
+                    d="M386 140 L386 208"/>
+              <!-- e4 role → repo (deploy) -->
+              <path class="edge edge-strong" style="--d:1.42s" pathLength="100" marker-end="url(#ah-v)"
+                    d="M486 230 C580 230 600 86 706 86"/>
+              <!-- e5 role → secret -->
+              <path class="edge edge-strong" style="--d:1.52s" pathLength="100" marker-end="url(#ah-v)"
+                    d="M486 230 C596 230 596 190 706 190"/>
+              <!-- e6 varga → agent (delegation) -->
+              <path class="edge edge-agent" style="--d:2.02s" pathLength="100" marker-end="url(#ah-c)"
+                    d="M111 180 L111 316"/>
+              <!-- e7 agent → session -->
+              <path class="edge edge-agent" style="--d:2.62s" pathLength="100" marker-end="url(#ah-c)"
+                    d="M206 338 L286 338"/>
+              <!-- e8 session → dataset -->
+              <path class="edge edge-agent" style="--d:3.06s" pathLength="100" marker-end="url(#ah-c)"
+                    d="M486 338 C596 338 596 322 706 322"/>
+              <!-- e9 session → secret (denied) -->
+              <path class="edge edge-deny" style="--d:3.34s" pathLength="100" marker-end="url(#ah-d)"
+                    d="M486 338 C600 338 600 212 706 212"/>
+              <!-- e10 org → client -->
+              <path class="edge" style="--d:3.86s" pathLength="100" marker-end="url(#ah-n)"
+                    d="M206 474 L286 474"/>
+              <!-- e11 client → api -->
+              <path class="edge edge-strong" style="--d:4.16s" pathLength="100" marker-end="url(#ah-v)"
+                    d="M486 474 L706 474"/>
+
+              <!-- ============ EDGE LABELS ============ -->
+              <g class="g-lab" style="--d:.9s">
+                <rect class="pill" x="212" y="94.5" width="68" height="15" rx="2"/>
+                <text class="g-edge-label" x="246" y="105.5" text-anchor="middle">member_of</text>
+              </g>
+              <g class="g-lab" style="--d:1s">
+                <rect class="pill" x="212" y="130.5" width="68" height="15" rx="2"/>
+                <text class="g-edge-label" x="246" y="141.5" text-anchor="middle">member_of</text>
+              </g>
+              <g class="g-lab" style="--d:1.4s">
+                <rect class="pill" x="392" y="166.5" width="56" height="15" rx="2"/>
+                <text class="g-edge-label" x="420" y="177.5" text-anchor="middle">assumes</text>
+              </g>
+              <g class="g-lab" style="--d:1.9s">
+                <rect class="pill" x="553" y="150.5" width="76" height="15" rx="2"/>
+                <text class="g-edge-label" x="591" y="161.5" text-anchor="middle">can_deploy</text>
+              </g>
+              <g class="g-lab" style="--d:2s">
+                <rect class="pill" x="565" y="202.5" width="62" height="15" rx="2"/>
+                <text class="g-edge-label" x="596" y="213.5" text-anchor="middle">can_read</text>
+              </g>
+              <g class="g-lab" style="--d:2.5s">
+                <rect class="pill" x="118" y="240.5" width="88" height="15" rx="2"/>
+                <text class="g-edge-label ag" x="162" y="251.5" text-anchor="middle">delegates_to</text>
+              </g>
+              <g class="g-lab" style="--d:3.1s">
+                <rect class="pill" x="221" y="330.5" width="50" height="15" rx="2"/>
+                <text class="g-edge-label ag" x="246" y="341.5" text-anchor="middle">issues</text>
+              </g>
+              <g class="g-lab" style="--d:3.55s">
+                <rect class="pill" x="546" y="322.5" width="100" height="15" rx="2"/>
+                <text class="g-edge-label ag" x="596" y="333.5" text-anchor="middle">can_read · 15m</text>
+              </g>
+              <g class="g-lab" style="--d:3.8s">
+                <rect class="pill" x="555" y="267.5" width="88" height="15" rx="2"/>
+                <text class="g-edge-label deny" x="599" y="278.5" text-anchor="middle">deny · scope</text>
+              </g>
+              <g class="g-lab" style="--d:4.3s">
+                <rect class="pill" x="227" y="466.5" width="38" height="15" rx="2"/>
+                <text class="g-edge-label" x="246" y="477.5" text-anchor="middle">owns</text>
+              </g>
+              <g class="g-lab" style="--d:4.6s">
+                <rect class="pill" x="561" y="466.5" width="70" height="15" rx="2"/>
+                <text class="g-edge-label" x="596" y="477.5" text-anchor="middle">can_write</text>
+              </g>
+
+              <!-- ============ NODES ============ -->
+
+              <!-- A1 -->
+              <g class="g-node" style="--d:.05s">
+                <rect class="n-box" x="16" y="64" width="190" height="44" rx="4"/>
+                <circle class="n-glyph" cx="34" cy="86" r="5"/>
+                <text class="g-node-label" x="50" y="90">user:dana.okoye</text>
+              </g>
+              <!-- A2 -->
+              <g class="g-node" style="--d:.14s">
+                <rect class="n-box" x="16" y="136" width="190" height="44" rx="4"/>
+                <circle class="n-glyph" cx="34" cy="158" r="5"/>
+                <text class="g-node-label" x="50" y="162">user:s.varga</text>
+              </g>
+              <!-- B1 -->
+              <g class="g-node" style="--d:.72s">
+                <rect class="n-box" x="286" y="96" width="200" height="44" rx="4"/>
+                <rect class="n-glyph" x="299" y="113" width="10" height="10" rx="1"/>
+                <text class="g-node-label" x="320" y="122">group:platform-eng</text>
+              </g>
+              <!-- B2 -->
+              <g class="g-node" style="--d:1.16s">
+                <rect class="n-box" x="286" y="208" width="200" height="44" rx="4"/>
+                <rect class="n-glyph" x="299" y="225" width="10" height="10" rx="1"/>
+                <text class="g-node-label" x="320" y="234">role:release-manager</text>
+              </g>
+              <!-- C1 -->
+              <g class="g-node" style="--d:1.74s">
+                <rect class="n-box" x="706" y="64" width="246" height="44" rx="4"/>
+                <rect class="n-glyph-res" x="719" y="81" width="10" height="10"/>
+                <text class="g-node-label" x="740" y="90">repo:checkout-api</text>
+              </g>
+              <!-- C2 -->
+              <g class="g-node" style="--d:1.84s">
+                <rect class="n-box" x="706" y="176" width="246" height="44" rx="4"/>
+                <rect class="n-glyph-res" x="719" y="193" width="10" height="10"/>
+                <text class="g-node-label" x="740" y="202">secret:stripe-live</text>
+              </g>
+              <!-- A3 agent -->
+              <g class="g-node" style="--d:2.44s">
+                <rect class="n-box-agent" x="16" y="316" width="190" height="44" rx="4"/>
+                <path class="n-glyph-agent" d="M34 331 L41 338 L34 345 L27 338 Z"/>
+                <text class="g-node-label" x="50" y="342">agent:atlas-mcp</text>
+              </g>
+              <!-- B3 session -->
+              <g class="g-node" style="--d:2.94s">
+                <rect class="n-box-agent" x="286" y="316" width="200" height="44" rx="4"/>
+                <path class="n-glyph-agent" d="M304 331 L311 338 L304 345 L297 338 Z"/>
+                <text class="g-node-label" x="320" y="342">session:mcp-4f2a</text>
+              </g>
+              <!-- C3 dataset -->
+              <g class="g-node" style="--d:3.42s">
+                <rect class="n-box" x="706" y="300" width="246" height="44" rx="4"/>
+                <rect class="n-glyph-res" x="719" y="317" width="10" height="10"/>
+                <text class="g-node-label" x="740" y="326">dataset:events-2026</text>
+              </g>
+              <!-- A4 org -->
+              <g class="g-node" style="--d:3.72s">
+                <rect class="n-box" x="16" y="452" width="190" height="44" rx="4"/>
+                <circle class="n-glyph" cx="34" cy="474" r="5"/>
+                <text class="g-node-label" x="50" y="478">org:northwind</text>
+              </g>
+              <!-- B4 m2m client -->
+              <g class="g-node" style="--d:4.02s">
+                <rect class="n-box" x="286" y="452" width="200" height="44" rx="4"/>
+                <rect class="n-glyph" x="299" y="469" width="10" height="10" rx="1"/>
+                <text class="g-node-label" x="320" y="478">client:nw-m2m</text>
+              </g>
+              <!-- C4 api -->
+              <g class="g-node" style="--d:4.5s">
+                <rect class="n-box" x="706" y="452" width="246" height="44" rx="4"/>
+                <rect class="n-glyph-res" x="719" y="469" width="10" height="10"/>
+                <text class="g-node-label" x="740" y="478">api:orders.v2</text>
+              </g>
+
+              <!-- ============ TRAVERSAL PULSES ============ -->
+              <g class="graph-pulses">
+                <circle r="8" fill="var(--violet)" opacity="0">
+                  <animate attributeName="opacity" values="0;.16;.16;0" keyTimes="0;.06;.9;1" dur="4.4s" begin="5.2s" repeatCount="indefinite"/>
+                  <animateMotion dur="4.4s" begin="5.2s" repeatCount="indefinite" rotate="0">
+                    <mpath href="#tr-t1" xlink:href="#tr-t1"/>
+                  </animateMotion>
+                </circle>
+                <circle r="3.4" fill="var(--violet)" opacity="0">
+                  <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.06;.9;1" dur="4.4s" begin="5.2s" repeatCount="indefinite"/>
+                  <animateMotion dur="4.4s" begin="5.2s" repeatCount="indefinite" rotate="0">
+                    <mpath href="#tr-t1" xlink:href="#tr-t1"/>
+                  </animateMotion>
+                </circle>
+                <circle r="8" fill="var(--coral)" opacity="0">
+                  <animate attributeName="opacity" values="0;.18;.18;0" keyTimes="0;.06;.9;1" dur="4.4s" begin="7.4s" repeatCount="indefinite"/>
+                  <animateMotion dur="4.4s" begin="7.4s" repeatCount="indefinite" rotate="0">
+                    <mpath href="#tr-t2" xlink:href="#tr-t2"/>
+                  </animateMotion>
+                </circle>
+                <circle r="3.4" fill="var(--coral)" opacity="0">
+                  <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.06;.9;1" dur="4.4s" begin="7.4s" repeatCount="indefinite"/>
+                  <animateMotion dur="4.4s" begin="7.4s" repeatCount="indefinite" rotate="0">
+                    <mpath href="#tr-t2" xlink:href="#tr-t2"/>
+                  </animateMotion>
+                </circle>
+              </g>
+            </svg>
+          </div>
+
+          <div class="legend">
+            <span><i class="lg-principal"></i> principal</span>
+            <span><i class="lg-role"></i> group / role</span>
+            <span><i class="lg-resource"></i> resource</span>
+            <span><i class="lg-agent"></i> agent · session</span>
+            <span><i class="lg-deny"></i> denied traversal</span>
+          </div>
+
+          <div class="graph-foot">
+            <div class="eval">
+              <span class="q">check(user:dana.okoye, can_deploy, repo:checkout-api)</span>
+              <span class="r">
+                <span class="chip chip-ok">allow</span>
+                <span>1.9 ms</span>
+                <span>·</span>
+                <span>member_of → assumes → deployer</span>
+              </span>
+            </div>
+            <div class="eval">
+              <span class="q">check(session:mcp-4f2a, can_read, secret:stripe-live)</span>
+              <span class="r">
+                <span class="chip chip-no">deny</span>
+                <span>0.6 ms</span>
+                <span>·</span>
+                <span>scope omits secrets:read</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PILLARS ============ -->
+    <section class="sec" id="pillars">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <p class="tag">the platform</p>
+          <div>
+            <h2>Three kinds of caller, one lattice</h2>
+            <p class="lede">
+              Most auth stacks bolt on a second system every time a new kind of caller appears: a directory for
+              staff, an API-key table for partners, a bearer token in an environment variable for whatever the
+              AI team shipped last month. Trellis has one model. Everything below is a node with edges.
+            </p>
+          </div>
+        </div>
+
+        <div class="pillars">
+
+          <article class="pillar pillar-agent reveal">
+            <div class="pillar-motif">
+              <svg viewBox="0 0 132 46" height="46" aria-hidden="true">
+                <circle cx="12" cy="23" r="6" fill="var(--surface)" stroke="var(--violet)" stroke-width="1.5"/>
+                <path d="M24 23 H48" stroke="var(--coral)" stroke-width="1.4" stroke-dasharray="3.2 2.6"/>
+                <path d="M60 23 L67 30 L74 23 L67 16 Z" fill="var(--coral-soft)" stroke="var(--coral)" stroke-width="1.5"/>
+                <path d="M80 23 H104" stroke="var(--coral)" stroke-width="1.4"/>
+                <rect x="106" y="15" width="16" height="16" fill="var(--violet-soft)" stroke="var(--violet)" stroke-width="1.3"/>
+                <text x="30" y="14" font-family="var(--mono)" font-size="8" fill="var(--coral-ink)">delegates</text>
+              </svg>
+            </div>
+            <p class="kicker">MCP · agent identity</p>
+            <h3>An agent is a principal, not an API key in a config file</h3>
+            <p>
+              Trellis speaks the Model Context Protocol. An agent registers under its own identity, then receives a
+              session bound to the human who delegated to it — with an explicit scope set, a time-to-live, and a
+              revocation handle. Every tool call the agent makes is checked against the same graph that guards your
+              product, and a delegated session can never resolve to more than the person behind it.
+            </p>
+            <ul class="spec">
+              <li>MCP server and client, streamable HTTP transport</li>
+              <li>per-tool scopes, not one token for everything</li>
+              <li>revoke a session; the next check fails, in flight</li>
+              <li>audit rows name the agent <em>and</em> the delegator</li>
+            </ul>
+          </article>
+
+          <article class="pillar reveal">
+            <div class="pillar-motif">
+              <svg viewBox="0 0 132 46" height="46" aria-hidden="true">
+                <rect x="70" y="5" width="58" height="36" rx="4" fill="none" stroke="var(--line-strong)" stroke-width="1.1" stroke-dasharray="4 4"/>
+                <circle cx="10" cy="15" r="5.5" fill="var(--surface)" stroke="var(--violet)" stroke-width="1.5"/>
+                <circle cx="10" cy="33" r="5.5" fill="var(--surface)" stroke="var(--violet)" stroke-width="1.5"/>
+                <path d="M18 15 C44 15 44 20 62 20" fill="none" stroke="var(--violet)" stroke-width="1.4"/>
+                <path d="M18 33 C44 33 44 30 62 30" fill="none" stroke="var(--line-strong)" stroke-width="1.4"/>
+                <rect x="80" y="12" width="14" height="14" fill="var(--violet-soft)" stroke="var(--violet)" stroke-width="1.3"/>
+                <rect x="104" y="22" width="14" height="14" fill="var(--violet-soft)" stroke="var(--violet)" stroke-width="1.3"/>
+              </svg>
+            </div>
+            <p class="kicker">Authorization as a service</p>
+            <h3>Third parties integrate against the graph, not against your support inbox</h3>
+            <p>
+              Expose authorization to the companies that build on you. A partner registers an application, gets its
+              own client credentials and scope set, and calls the same check API your own services use. Tenant
+              isolation is enforced at the storage layer, so there is no query shape that reaches a node the caller
+              was never granted an edge to.
+            </p>
+            <ul class="spec">
+              <li>OIDC · OAuth 2.1 with PKCE and DPoP</li>
+              <li>SAML 2.0 and SCIM 2.0 directory sync</li>
+              <li>machine-to-machine tokens, client credentials</li>
+              <li>API keys looked up by prefix, hashed at rest</li>
+              <li>fine-grained relations, hard tenant isolation</li>
+            </ul>
+          </article>
+
+          <article class="pillar reveal">
+            <div class="pillar-motif">
+              <svg viewBox="0 0 132 46" height="46" aria-hidden="true">
+                <path d="M4 34 L16 30 L28 32 L40 24 L52 27 L64 20 L76 23 L88 12 L100 26 L112 22 L126 25"
+                      fill="none" stroke="var(--line-strong)" stroke-width="1.4" stroke-linejoin="round"/>
+                <path d="M4 41 H126" stroke="var(--line)" stroke-width="1"/>
+                <circle cx="88" cy="12" r="4.5" fill="var(--coral-soft)" stroke="var(--coral)" stroke-width="1.6"/>
+                <text x="96" y="10" font-family="var(--mono)" font-size="8" fill="var(--coral-ink)">risk 0.91</text>
+              </svg>
+            </div>
+            <p class="kicker">Analytics over the auth stream</p>
+            <h3>Ask the auth stream a question in the language you would ask a colleague</h3>
+            <p>
+              Every sign-in, token issue and permission check is an event. Trellis scores each session against that
+              account's own history — geography, device, hour of day, unusual traversals through the graph — and
+              raises the outliers rather than every anomaly. Ask "which agents read anything under
+              <span class="mono">secret:*</span> last week" and get the generated query, the rows, and the exact
+              edges that permitted each one.
+            </p>
+            <ul class="spec">
+              <li>per-session risk score with the contributing signals</li>
+              <li>plain-language questions over the audit log</li>
+              <li>impossible-travel, credential-stuffing, scope-creep</li>
+              <li>models run in your deployment; nothing leaves</li>
+            </ul>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ INTEGRATE ============ -->
+    <section class="sec sec-alt" id="integrate">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <p class="tag">integrate</p>
+          <div>
+            <h2>Two calls to add authentication. One to add an agent.</h2>
+            <p class="lede">
+              The SDK is a thin wrapper over the HTTP API — anything the client does, you can do with
+              <span class="mono">curl</span>. The check call is identical whether the subject is a person, a
+              partner's service account, or an agent holding a delegated session.
+            </p>
+          </div>
+        </div>
+
+        <div class="code-grid">
+
+          <div class="panel reveal">
+            <div class="panel-bar">
+              <span class="title">app/auth.ts</span>
+              <span class="spacer"></span>
+              <span class="chip chip-v">oidc · authorization code + pkce</span>
+            </div>
+            <pre><code><span class="kw">import</span> { Trellis } <span class="kw">from</span> <span class="st">"@trellis/sdk"</span><span class="pn">;</span>
+
+<span class="kw">const</span> trellis <span class="pn">=</span> <span class="kw">new</span> Trellis({
+  issuer<span class="pn">:</span>   <span class="st">"https://auth.acme.dev"</span><span class="pn">,</span>
+  clientId<span class="pn">:</span> process<span class="pn">.</span>env<span class="pn">.</span><span class="pr">TRELLIS_CLIENT_ID</span><span class="pn">,</span>
+  audience<span class="pn">:</span> <span class="st">"api://checkout"</span><span class="pn">,</span>
+})<span class="pn">;</span>
+
+<span class="cm">// exchanges the code, verifies the id_token, opens a session</span>
+<span class="kw">export const</span> callback <span class="pn">=</span> trellis<span class="pn">.</span><span class="pr">handleCallback</span>(<span class="kw">async</span> (session) <span class="pn">=&gt;</span> {
+  <span class="kw">const</span> verdict <span class="pn">=</span> <span class="kw">await</span> trellis<span class="pn">.</span><span class="pr">check</span>({
+    subject<span class="pn">:</span>    session<span class="pn">.</span>subject<span class="pn">,</span>       <span class="cm">// user:dana.okoye</span>
+    permission<span class="pn">:</span> <span class="st">"can_deploy"</span><span class="pn">,</span>
+    resource<span class="pn">:</span>   <span class="st">"repo:checkout-api"</span><span class="pn">,</span>
+  })<span class="pn">;</span>
+
+  <span class="kw">if</span> (<span class="pn">!</span>verdict<span class="pn">.</span>allowed) <span class="kw">return</span> forbidden(verdict<span class="pn">.</span>reason)<span class="pn">;</span>
+
+  <span class="cm">// verdict.path -> ["member_of", "assumes", "deployer"]</span>
+  <span class="kw">return</span> redirect(<span class="st">"/deploys"</span>)<span class="pn">;</span>
+})<span class="pn">;</span></code></pre>
+          </div>
+
+          <div class="panel reveal">
+            <div class="panel-bar">
+              <span class="title">agents/atlas.ts</span>
+              <span class="spacer"></span>
+              <span class="chip chip-c">mcp · delegated scope</span>
+            </div>
+            <pre><code><span class="kw">import</span> { mcp } <span class="kw">from</span> <span class="st">"@trellis/mcp"</span><span class="pn">;</span>
+
+<span class="cm">// the agent is a principal; the user lends it a narrow slice</span>
+<span class="kw">const</span> grant <span class="pn">=</span> <span class="kw">await</span> trellis<span class="pn">.</span>agents<span class="pn">.</span><span class="pr">delegate</span>({
+  agent<span class="pn">:</span>      <span class="ag">"agent:atlas-mcp"</span><span class="pn">,</span>
+  onBehalfOf<span class="pn">:</span> <span class="st">"user:s.varga"</span><span class="pn">,</span>
+  scopes<span class="pn">:</span>     [<span class="st">"dataset:read"</span><span class="pn">,</span> <span class="st">"repo:read"</span>]<span class="pn">,</span>
+  ttl<span class="pn">:</span>        <span class="st">"15m"</span><span class="pn">,</span>              <span class="cm">// hard expiry, not a hint</span>
+})<span class="pn">;</span>
+
+<span class="kw">const</span> server <span class="pn">=</span> mcp<span class="pn">.</span><span class="pr">server</span>({ grant })<span class="pn">;</span>
+
+server<span class="pn">.</span><span class="pr">tool</span>(<span class="st">"query_events"</span><span class="pn">,</span> <span class="kw">async</span> (args<span class="pn">,</span> ctx) <span class="pn">=&gt;</span> {
+  <span class="cm">// same graph, same check — the session cannot exceed s.varga</span>
+  <span class="kw">await</span> ctx<span class="pn">.</span><span class="pr">check</span>(<span class="st">"can_read"</span><span class="pn">,</span> <span class="st">"dataset:events-2026"</span>)<span class="pn">;</span>
+
+  <span class="kw">return</span> warehouse<span class="pn">.</span>query(args<span class="pn">.</span>sql<span class="pn">,</span> { limit<span class="pn">:</span> <span class="nm">5000</span> })<span class="pn">;</span>
+})<span class="pn">;</span>
+
+<span class="cm">// revoke from anywhere; in-flight tool calls fail on next check</span>
+<span class="kw">await</span> trellis<span class="pn">.</span>agents<span class="pn">.</span><span class="pr">revoke</span>(<span class="ag">"session:mcp-4f2a"</span>)<span class="pn">;</span></code></pre>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ POLICY ============ -->
+    <section class="sec" id="policy">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <p class="tag">policy as code</p>
+          <div>
+            <h2>The schema is the graph, written down</h2>
+            <p class="lede">
+              Relations describe which edges may exist. Permissions describe which traversals count as
+              authorization. The file lives in your repository, ships through your pipeline, and gets diffed in
+              review like any other code — <span class="mono">trellis lint</span> rejects a schema that would widen
+              an existing permission without an explicit annotation.
+            </p>
+          </div>
+        </div>
+
+        <div class="policy-grid">
+
+          <div class="panel reveal">
+            <div class="panel-bar">
+              <span class="title">policy/checkout.trellis</span>
+              <span class="spacer"></span>
+              <span class="chip">schema v4</span>
+              <span class="chip chip-ok">lint clean</span>
+            </div>
+            <pre class="code-num"><code><span class="l"><span class="kw">definition</span> user {}</span>
+<span class="l"><span class="kw">definition</span> agent {}</span>
+<span class="l"></span>
+<span class="l"><span class="kw">definition</span> group {</span>
+<span class="l">  <span class="kw">relation</span> member<span class="pn">:</span> user <span class="pn">|</span> group<span class="pn">#</span>member</span>
+<span class="l">}</span>
+<span class="l"></span>
+<span class="l"><span class="kw">definition</span> role {</span>
+<span class="l">  <span class="kw">relation</span> holder<span class="pn">:</span> user <span class="pn">|</span> group<span class="pn">#</span>member</span>
+<span class="l">  <span class="kw">permission</span> assumes <span class="pn">=</span> holder</span>
+<span class="l">}</span>
+<span class="l"></span>
+<span class="l"><span class="kw">definition</span> repository {</span>
+<span class="l">  <span class="kw">relation</span> tenant<span class="pn">:</span>   tenant</span>
+<span class="l">  <span class="kw">relation</span> reader<span class="pn">:</span>   user <span class="pn">|</span> group<span class="pn">#</span>member <span class="pn">|</span> <span class="ag">session</span></span>
+<span class="l">  <span class="kw">relation</span> deployer<span class="pn">:</span> role<span class="pn">#</span>assumes</span>
+<span class="l"></span>
+<span class="l">  <span class="kw">permission</span> can_read   <span class="pn">=</span> reader <span class="pn">+</span> deployer</span>
+<span class="l">  <span class="kw">permission</span> can_deploy <span class="pn">=</span> deployer <span class="pn">-</span> tenant<span class="pn">-&gt;</span>frozen</span>
+<span class="l">}</span>
+<span class="l"></span>
+<span class="l"><span class="cm">// a delegated session is bounded twice over:</span></span>
+<span class="l"><span class="cm">// by its own scope, and by the human who granted it</span></span>
+<span class="l"><span class="kw">definition</span> <span class="ag">session</span> {</span>
+<span class="l">  <span class="kw">relation</span> principal<span class="pn">:</span>    <span class="ag">agent</span></span>
+<span class="l">  <span class="kw">relation</span> delegated_by<span class="pn">:</span> user</span>
+<span class="l">  <span class="kw">relation</span> scope<span class="pn">:</span>        scope</span>
+<span class="l">  <span class="kw">relation</span> expires_at<span class="pn">:</span>   timestamp</span>
+<span class="l"></span>
+<span class="l">  <span class="kw">permission</span> can_read <span class="pn">=</span></span>
+<span class="l">    scope<span class="pn">-&gt;</span>grants <span class="pn">&amp;</span> delegated_by<span class="pn">-&gt;</span>can_read <span class="pn">-</span> expired</span>
+<span class="l">}</span></code></pre>
+          </div>
+
+          <div class="panel reveal">
+            <div class="panel-bar">
+              <span class="title">trellis check --replay 5m</span>
+              <span class="spacer"></span>
+              <span class="chip">tenant: acme-prod</span>
+            </div>
+            <div class="checks">
+              <div class="check">
+                <span class="subj">user:dana.okoye can_deploy repo:checkout-api</span>
+                <span class="verdict"><span class="chip chip-ok">allow</span> 1.9 ms</span>
+                <span class="path">member_of → assumes → deployer</span>
+              </div>
+              <div class="check">
+                <span class="subj">user:s.varga can_read secret:stripe-live</span>
+                <span class="verdict"><span class="chip chip-ok">allow</span> 2.4 ms</span>
+                <span class="path">member_of → assumes → reader</span>
+              </div>
+              <div class="check">
+                <span class="subj">session:mcp-4f2a can_read dataset:events-2026</span>
+                <span class="verdict"><span class="chip chip-ok">allow</span> 1.1 ms</span>
+                <span class="path">scope ∩ delegated_by→can_read · 11m 04s left</span>
+              </div>
+              <div class="check">
+                <span class="subj">session:mcp-4f2a can_read secret:stripe-live</span>
+                <span class="verdict"><span class="chip chip-no">deny</span> 0.6 ms</span>
+                <span class="path">scope omits secrets:read · delegator would allow</span>
+              </div>
+              <div class="check">
+                <span class="subj">client:nw-m2m can_write api:orders.v2</span>
+                <span class="verdict"><span class="chip chip-ok">allow</span> 0.9 ms</span>
+                <span class="path">owns → client_credentials · scope orders:write</span>
+              </div>
+              <div class="check">
+                <span class="subj">client:nw-m2m can_read dataset:events-2026</span>
+                <span class="verdict"><span class="chip chip-no">deny</span> 0.4 ms</span>
+                <span class="path">no path · cross-tenant read blocked at storage</span>
+              </div>
+              <div class="check">
+                <span class="subj">user:j.mensah can_deploy repo:checkout-api</span>
+                <span class="verdict"><span class="chip chip-no">deny</span> 0.5 ms</span>
+                <span class="path">member_of group:support · no deployer edge</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ OPERATE ============ -->
+    <section class="sec sec-alt" id="operate">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <p class="tag">self-host</p>
+          <div>
+            <h2>One binary, one database, your network</h2>
+            <p class="lede">
+              Trellis is a single static binary and a Postgres schema. No sidecar, no broker, no vendor-operated
+              control plane holding the keys to your users. The analytics run in your deployment against a local
+              model or a model endpoint you configure, so the auth stream never leaves your perimeter.
+            </p>
+          </div>
+        </div>
+
+        <div class="deploy-grid">
+          <div class="shape reveal">
+            <h4>single node</h4>
+            <p>
+              One binary against one Postgres. Comfortable to roughly four thousand checks a second on four cores;
+              this is what most teams run for the first two years.
+            </p>
+            <div class="cmd">$ trellis serve --config trellis.toml</div>
+          </div>
+          <div class="shape reveal">
+            <h4>regional</h4>
+            <p>
+              Stateless check nodes behind your load balancer, one writer, a read replica per region. Reads resolve
+              against the nearest replica; relation writes converge in well under a second.
+            </p>
+            <div class="cmd">$ helm install trellis trellis/trellis</div>
+          </div>
+          <div class="shape reveal">
+            <h4>air-gapped</h4>
+            <p>
+              No outbound connections of any kind. Offline entitlement file, offline model weights, signed release
+              bundles verified against a key you pin at install time.
+            </p>
+            <div class="cmd">$ trellis verify --bundle trellis-2.7.3.tar</div>
+          </div>
+        </div>
+
+        <div class="req reveal" aria-label="Requirements">
+          <span class="chip">postgres 15+</span>
+          <span class="chip">x86-64 · arm64</span>
+          <span class="chip">512 MB per node</span>
+          <span class="chip">helm chart</span>
+          <span class="chip">terraform module</span>
+          <span class="chip">opentelemetry traces + metrics</span>
+          <span class="chip">FIPS build available</span>
+          <span class="chip">zero-downtime schema migrations</span>
+        </div>
+
+        <p class="migrate reveal">
+          Coming from somewhere else: <code>trellis migrate</code> imports realms, users, groups and clients from
+          Keycloak or Okta, maps their roles onto relations, and keeps the old issuer verifying its own tokens
+          until you finish cutting over.
+        </p>
+
+        <div class="panel topo reveal">
+          <div class="panel-bar">
+            <span class="title">topology · regional</span>
+            <span class="spacer"></span>
+            <span class="chip chip-ok">writer healthy</span>
+            <span class="chip">3 regions</span>
+          </div>
+          <div class="graph-scroll">
+            <svg viewBox="0 0 1000 180" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img"
+                 aria-label="Topology diagram: one primary writer replicates to three regional read replicas, each fronted by stateless check nodes.">
+              <rect x="30" y="62" width="180" height="56" rx="4" fill="var(--surface)" stroke="var(--violet)" stroke-width="1.4"/>
+              <text x="48" y="86" font-family="var(--mono)" font-size="12" fill="var(--ink)">postgres:writer</text>
+              <text x="48" y="103" font-family="var(--mono)" font-size="10" fill="var(--ink-3)">relations · schema</text>
+
+              <path d="M210 90 C280 90 300 44 370 44" fill="none" stroke="var(--line-strong)" stroke-width="1.4"/>
+              <path d="M210 90 H370" fill="none" stroke="var(--line-strong)" stroke-width="1.4"/>
+              <path d="M210 90 C280 90 300 136 370 136" fill="none" stroke="var(--line-strong)" stroke-width="1.4"/>
+              <rect x="252" y="76" width="76" height="15" rx="2" fill="var(--surface)"/>
+              <text x="290" y="87" font-family="var(--mono)" font-size="10.5" fill="var(--ink-2)" text-anchor="middle">replicates</text>
+
+              <g font-family="var(--mono)" font-size="11.5" fill="var(--ink)">
+                <rect x="370" y="24" width="200" height="40" rx="4" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.2"/>
+                <text x="386" y="49">replica:eu-west-1</text>
+                <rect x="370" y="70" width="200" height="40" rx="4" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.2"/>
+                <text x="386" y="95">replica:us-east-1</text>
+                <rect x="370" y="116" width="200" height="40" rx="4" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.2"/>
+                <text x="386" y="141">replica:ap-south-1</text>
+              </g>
+
+              <path d="M570 44 H700" fill="none" stroke="var(--violet)" stroke-width="1.4"/>
+              <path d="M570 90 H700" fill="none" stroke="var(--violet)" stroke-width="1.4"/>
+              <path d="M570 136 H700" fill="none" stroke="var(--violet)" stroke-width="1.4"/>
+
+              <g font-family="var(--mono)" font-size="11.5" fill="var(--ink)">
+                <rect x="700" y="24" width="270" height="40" rx="4" fill="var(--violet-soft)" stroke="var(--violet)" stroke-width="1.2"/>
+                <text x="716" y="49">check-node ×4 · p99 2.1 ms</text>
+                <rect x="700" y="70" width="270" height="40" rx="4" fill="var(--violet-soft)" stroke="var(--violet)" stroke-width="1.2"/>
+                <text x="716" y="95">check-node ×6 · p99 1.8 ms</text>
+                <rect x="700" y="116" width="270" height="40" rx="4" fill="var(--violet-soft)" stroke="var(--violet)" stroke-width="1.2"/>
+                <text x="716" y="141">check-node ×2 · p99 2.4 ms</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CLOSING ============ -->
+    <section class="sec" id="docs">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <p class="tag">start here</p>
+          <div>
+            <h2>Bring up a graph in about four minutes</h2>
+            <p class="lede">
+              The dev command starts Postgres in a container, applies the schema, seeds the tenant above, and prints
+              a client id you can point a real application at. Nothing it creates survives a restart, which is the
+              point.
+            </p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#main">Quickstart</a>
+              <a class="btn btn-ghost" href="#policy">Schema reference</a>
+              <a class="btn btn-ghost" href="#integrate">MCP guide</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="ftr">
+    <div class="wrap">
+      <div class="ftr-grid">
+        <div>
+          <a class="brand" href="#main" aria-label="Trellis, home">
+            <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+              <path d="M3 19 L11 3 L19 19" fill="none" stroke="var(--violet)" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M6 12.5 H16 M4.6 16 H17.4" stroke="var(--line-strong)" stroke-width="1.2"/>
+              <circle cx="11" cy="3" r="2.1" fill="var(--surface)" stroke="var(--violet)" stroke-width="1.6"/>
+              <circle cx="3" cy="19" r="2.1" fill="var(--surface)" stroke="var(--violet)" stroke-width="1.6"/>
+              <circle cx="19" cy="19" r="2.1" fill="var(--coral)" stroke="var(--coral)" stroke-width="1.6"/>
+            </svg>
+            Trellis
+          </a>
+          <p class="ftr-note">
+            Self-hosted identity and authorization, modelled as a graph. Built for teams whose callers are no
+            longer only people.
+          </p>
+        </div>
+        <div>
+          <h5>Platform</h5>
+          <ul>
+            <li><a href="#pillars">Relations &amp; permissions</a></li>
+            <li><a href="#pillars">Tenant isolation</a></li>
+            <li><a href="#integrate">OIDC &amp; OAuth 2.1</a></li>
+            <li><a href="#integrate">SAML &amp; SCIM</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Agents</h5>
+          <ul>
+            <li><a href="#integrate">MCP server</a></li>
+            <li><a href="#pillars">Delegated sessions</a></li>
+            <li><a href="#policy">Scope algebra</a></li>
+            <li><a href="#policy">Revocation</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Operate</h5>
+          <ul>
+            <li><a href="#operate">Deployment shapes</a></li>
+            <li><a href="#operate">Helm &amp; Terraform</a></li>
+            <li><a href="#operate">Migration</a></li>
+            <li><a href="#operate">Air-gapped install</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Project</h5>
+          <ul>
+            <li><a href="#docs">Changelog</a></li>
+            <li><a href="#docs">Security disclosure</a></li>
+            <li><a href="#docs">Roadmap</a></li>
+            <li><a href="#docs">Community</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="ftr-bot">
+        <span>apache-2.0</span>
+        <span>v2.7.3 · 2026-07-14</span>
+        <span>docs.trellis.dev</span>
+        <span>status.trellis.dev</span>
+        <span>Trellis is a fictional product made for a design exercise; it is not affiliated with any existing company.</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── Design-review appendix ────────────────────────────────────────────
+       Not part of the direction — a harness for judging it. This direction is
+       light-first, so the dark stock is the one that needs proving. -->
+  <section class="dvp">
+    <div class="wrap">
+      <p class="eyebrow">Appendix · palette</p>
+      <h2>Both stocks, every token.</h2>
+      <p class="lede dvp-note">
+        Values are read from the live stylesheet rather than typed in, so a swatch can never drift
+        from the token it documents. Violet and coral are lifted for the dark ground instead of being
+        reused — flip the switch in the corner and watch which values move.
+      </p>
+
+      <div class="dvp-grid">
+        <div class="dvp-sw" data-token="--ground"><span class="dvp-chip" style="background: var(--ground)"></span><b>--ground</b><code></code></div>
+        <div class="dvp-sw" data-token="--ground-2"><span class="dvp-chip" style="background: var(--ground-2)"></span><b>--ground-2</b><code></code></div>
+        <div class="dvp-sw" data-token="--surface"><span class="dvp-chip" style="background: var(--surface)"></span><b>--surface</b><code></code></div>
+        <div class="dvp-sw" data-token="--surface-2"><span class="dvp-chip" style="background: var(--surface-2)"></span><b>--surface-2</b><code></code></div>
+        <div class="dvp-sw" data-token="--line"><span class="dvp-chip" style="background: var(--line)"></span><b>--line</b><code></code></div>
+        <div class="dvp-sw" data-token="--line-strong"><span class="dvp-chip" style="background: var(--line-strong)"></span><b>--line-strong</b><code></code></div>
+        <div class="dvp-sw" data-token="--ink"><span class="dvp-chip" style="background: var(--ink)"></span><b>--ink</b><code></code></div>
+        <div class="dvp-sw" data-token="--ink-2"><span class="dvp-chip" style="background: var(--ink-2)"></span><b>--ink-2</b><code></code></div>
+        <div class="dvp-sw" data-token="--ink-3"><span class="dvp-chip" style="background: var(--ink-3)"></span><b>--ink-3</b><code></code></div>
+        <div class="dvp-sw" data-token="--violet"><span class="dvp-chip" style="background: var(--violet)"></span><b>--violet</b><code></code></div>
+        <div class="dvp-sw" data-token="--violet-ink"><span class="dvp-chip" style="background: var(--violet-ink)"></span><b>--violet-ink</b><code></code></div>
+        <div class="dvp-sw" data-token="--violet-soft"><span class="dvp-chip" style="background: var(--violet-soft)"></span><b>--violet-soft</b><code></code></div>
+        <div class="dvp-sw" data-token="--coral"><span class="dvp-chip" style="background: var(--coral)"></span><b>--coral</b><code></code></div>
+        <div class="dvp-sw" data-token="--coral-ink"><span class="dvp-chip" style="background: var(--coral-ink)"></span><b>--coral-ink</b><code></code></div>
+        <div class="dvp-sw" data-token="--ok"><span class="dvp-chip" style="background: var(--ok)"></span><b>--ok</b><code></code></div>
+        <div class="dvp-sw" data-token="--warn"><span class="dvp-chip" style="background: var(--warn)"></span><b>--warn</b><code></code></div>
+        <div class="dvp-sw" data-token="--danger"><span class="dvp-chip" style="background: var(--danger)"></span><b>--danger</b><code></code></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="dvp-switch" role="group" aria-label="Preview theme">
+  <button type="button" data-mode="light" aria-pressed="false">Light</button>
+  <button type="button" data-mode="dark" aria-pressed="false">Dark</button>
+</div>
+
+<style>
+  /* The page ground lives on .tr-page, so overscroll and any gap below the
+     content would otherwise show the document's own background — white, in a
+     dark theme. Paint the body to match. */
+  body { background: var(--ground); margin: 0; }
+
+  .dvp-switch {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 900;
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+  }
+
+  .dvp-switch button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--ink-3);
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 0 15px;
+    min-height: 40px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  .dvp-switch button[aria-pressed="true"] {
+    background: var(--violet);
+    color: var(--on-violet);
+  }
+
+  .dvp {
+    border-top: 1px solid var(--line);
+    background: var(--ground-2);
+    padding: clamp(2.5rem, 6vw, 4rem) 0 6rem;
+  }
+
+  .dvp h2 {
+    font-size: clamp(1.65rem, 3.3vw, 2.4rem);
+    letter-spacing: -.028em;
+    line-height: 1.1;
+    margin: .55rem 0 .9rem;
+  }
+
+  .dvp-note { margin-bottom: 2rem; }
+
+  .dvp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .dvp-sw {
+    background: var(--surface);
+    padding: .85rem .9rem .95rem;
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+  }
+
+  .dvp-chip { height: 2.9rem; border: 1px solid var(--line); border-radius: 3px; }
+
+  .dvp-sw b {
+    font-family: var(--mono);
+    font-size: .72rem;
+    font-weight: 500;
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+
+  .dvp-sw code {
+    font-family: var(--mono);
+    font-size: .72rem;
+    color: var(--ink-3);
+    text-transform: uppercase;
+  }
+</style>
+
+<script>
+  (function () {
+    "use strict";
+
+    // The palette prints resolved values rather than hardcoded ones, so the
+    // documentation cannot fall out of step with the tokens themselves.
+    var root = document.documentElement;
+
+    function paintPalette() {
+      var cs = getComputedStyle(root);
+
+      document.querySelectorAll(".dvp-sw").forEach(function (el) {
+        var value = cs.getPropertyValue(el.dataset.token).trim();
+        el.querySelector("code").textContent = value || "—";
+      });
+    }
+
+    function applyTheme(mode) {
+      root.dataset.theme = mode;
+
+      document.querySelectorAll(".dvp-switch button").forEach(function (b) {
+        b.setAttribute("aria-pressed", b.dataset.mode === mode ? "true" : "false");
+      });
+
+      requestAnimationFrame(paintPalette);
+    }
+
+    document.querySelectorAll(".dvp-switch button").forEach(function (b) {
+      b.addEventListener("click", function () { applyTheme(b.dataset.mode); });
+    });
+
+    applyTheme(
+      root.dataset.theme ||
+        (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+    );
+  })();
+</script>

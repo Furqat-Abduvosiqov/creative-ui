@@ -1,0 +1,1405 @@
+<title>Marque — delegated authority, on the record</title>
+
+<style>
+  /* ── TOKENS ─────────────────────────────────────────────────────────── */
+  :root {
+    color-scheme: light;
+
+    --field:        #5E1F2B;
+    --field-deep:   #46141F;
+    --field-ink:    #EFE7DA;
+    --field-muted:  #D9C6BC;
+
+    --ground:       #EFE7DA;
+    --ground-ink:   #1E1418;
+    --ground-muted: #5A4A46;
+
+    --signal:       #FF6B2C;
+    --signal-field: #FF8A45;
+    --signal-ink:   #A63A10;
+    --on-signal:    #1E1418;
+
+    --code-bg:      #140E11;
+    --code-ink:     #E8DCCF;
+    --code-key:     #FF9D63;
+    --code-str:     #9FC6A9;
+    --code-num:     #E7C567;
+    --code-com:     #8E7A73;
+    --code-fn:      #86BEC9;
+
+    --rule:         #CDBCA8;
+    --rule-field:   #8A4450;
+
+    --focus:        #FF7A3A;
+    --focus-halo:   #1E1418;
+
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+
+      --field:        #3F1119;
+      --field-deep:   #2B0B12;
+      --field-ink:    #EDE1D2;
+      --field-muted:  #C9B0A9;
+
+      --ground:       #191211;
+      --ground-ink:   #EFE7DA;
+      --ground-muted: #B3A296;
+
+      --signal:       #FF7A3A;
+      --signal-field: #FF9457;
+      --signal-ink:   #FF8A45;
+      --on-signal:    #1A0F0B;
+
+      --code-bg:      #0F0A0C;
+      --code-ink:     #EADFD2;
+      --code-key:     #FF9D63;
+      --code-str:     #A6CBAF;
+      --code-num:     #EDCB70;
+      --code-com:     #98837B;
+      --code-fn:      #8FC7D2;
+
+      --rule:         #3A2C29;
+      --rule-field:   #6E2F3A;
+
+      --focus:        #FF8A45;
+      --focus-halo:   #EFE7DA;
+    }
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+
+    --field:        #5E1F2B;
+    --field-deep:   #46141F;
+    --field-ink:    #EFE7DA;
+    --field-muted:  #D9C6BC;
+
+    --ground:       #EFE7DA;
+    --ground-ink:   #1E1418;
+    --ground-muted: #5A4A46;
+
+    --signal:       #FF6B2C;
+    --signal-field: #FF8A45;
+    --signal-ink:   #A63A10;
+    --on-signal:    #1E1418;
+
+    --code-bg:      #140E11;
+    --code-ink:     #E8DCCF;
+    --code-key:     #FF9D63;
+    --code-str:     #9FC6A9;
+    --code-num:     #E7C567;
+    --code-com:     #8E7A73;
+    --code-fn:      #86BEC9;
+
+    --rule:         #CDBCA8;
+    --rule-field:   #8A4450;
+
+    --focus:        #FF7A3A;
+    --focus-halo:   #1E1418;
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --field:        #3F1119;
+    --field-deep:   #2B0B12;
+    --field-ink:    #EDE1D2;
+    --field-muted:  #C9B0A9;
+
+    --ground:       #191211;
+    --ground-ink:   #EFE7DA;
+    --ground-muted: #B3A296;
+
+    --signal:       #FF7A3A;
+    --signal-field: #FF9457;
+    --signal-ink:   #FF8A45;
+    --on-signal:    #1A0F0B;
+
+    --code-bg:      #0F0A0C;
+    --code-ink:     #EADFD2;
+    --code-key:     #FF9D63;
+    --code-str:     #A6CBAF;
+    --code-num:     #EDCB70;
+    --code-com:     #98837B;
+    --code-fn:      #8FC7D2;
+
+    --rule:         #3A2C29;
+    --rule-field:   #6E2F3A;
+
+    --focus:        #FF8A45;
+    --focus-halo:   #EFE7DA;
+  }
+
+  /* ── BASE ───────────────────────────────────────────────────────────── */
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ground-ink);
+    font-family: var(--sans);
+    font-size: clamp(1rem, .4vw + .92rem, 1.125rem);
+    line-height: 1.55;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, p, ul, ol, figure { margin: 0; }
+  ul { list-style: none; padding: 0; }
+  img, svg { max-width: 100%; }
+
+  a { color: inherit; }
+
+  a:focus-visible,
+  button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus), 0 0 0 6px var(--focus-halo);
+    border-radius: 1px;
+  }
+
+  .skip {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 60;
+    background: var(--signal);
+    color: var(--on-signal);
+    font: 600 .8rem/1 var(--mono);
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    padding: .9rem 1.2rem;
+    text-decoration: none;
+  }
+
+  .skip:focus { left: .5rem; top: .5rem; }
+
+  /* ── FIELDS ─────────────────────────────────────────────────────────── */
+  .field-ox   { background: var(--field);   color: var(--field-ink); }
+  .field-bone { background: var(--ground);  color: var(--ground-ink); }
+  .field-sig  { background: var(--signal);  color: var(--on-signal); }
+  .field-dark { background: var(--code-bg); color: var(--code-ink); }
+
+  .wrap {
+    width: 100%;
+    max-width: 1720px;
+    margin-inline: auto;
+    padding-inline: clamp(1.15rem, 4vw, 4.5rem);
+  }
+
+  section { padding-block: clamp(4rem, 9vw, 8.5rem); }
+
+  /* ── TYPE ROLES ─────────────────────────────────────────────────────── */
+  .eyebrow {
+    font: 600 clamp(.66rem, .3vw + .6rem, .74rem)/1.5 var(--mono);
+    letter-spacing: .22em;
+    text-transform: uppercase;
+  }
+
+  .field-ox .eyebrow   { color: var(--signal-field); }
+  .field-bone .eyebrow { color: var(--signal-ink); }
+  .field-dark .eyebrow { color: var(--code-key); }
+  .field-sig .eyebrow  { color: var(--on-signal); }
+
+  .display {
+    font-size: clamp(2.55rem, 10.5vw, 7rem);
+    line-height: .89;
+    letter-spacing: -.045em;
+    font-weight: 800;
+    text-wrap: balance;
+  }
+
+  .head {
+    font-size: clamp(2.05rem, 6.4vw, 4.6rem);
+    line-height: .95;
+    letter-spacing: -.035em;
+    font-weight: 800;
+    text-wrap: balance;
+  }
+
+  .sub {
+    font-size: clamp(1.35rem, 2.6vw, 2.1rem);
+    line-height: 1.08;
+    letter-spacing: -.025em;
+    font-weight: 750;
+    text-wrap: balance;
+  }
+
+  .lede {
+    font-size: clamp(1.05rem, 1.1vw + .82rem, 1.5rem);
+    line-height: 1.42;
+    font-weight: 400;
+    max-width: 34ch;
+    text-wrap: pretty;
+  }
+
+  .lede-wide { max-width: 46ch; }
+
+  .mono {
+    font: 500 clamp(.78rem, .3vw + .72rem, .9rem)/1.6 var(--mono);
+    letter-spacing: -.005em;
+  }
+
+  .num {
+    font: 700 clamp(2.6rem, 7vw, 6.2rem)/1 var(--mono);
+    letter-spacing: -.06em;
+    display: block;
+  }
+
+  .field-ox .num   { color: var(--signal-field); }
+  .field-bone .num { color: var(--signal-ink); }
+
+  .field-ox .muted   { color: var(--field-muted); }
+  .field-bone .muted { color: var(--ground-muted); }
+  .field-dark .muted { color: var(--code-com); }
+
+  /* ── HEADER ─────────────────────────────────────────────────────────── */
+  .hd { padding-block: clamp(1.1rem, 2.4vw, 1.9rem); }
+
+  .hd-in {
+    display: flex;
+    align-items: center;
+    gap: clamp(1rem, 4vw, 3rem);
+    flex-wrap: wrap;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    text-decoration: none;
+    margin-right: auto;
+  }
+
+  .brand-word {
+    font: 800 1.12rem/1 var(--sans);
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    padding-left: .06em;
+  }
+
+  .hd nav {
+    display: flex;
+    gap: clamp(.9rem, 2vw, 2rem);
+    flex-wrap: wrap;
+  }
+
+  .hd nav a {
+    font: 600 .74rem/1 var(--mono);
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--field-muted);
+    padding: .55rem .1rem;
+  }
+
+  .hd nav a:hover { color: var(--field-ink); }
+
+  .hd-cta {
+    font: 700 .74rem/1 var(--mono);
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--signal-field);
+    padding: .55rem 0;
+    border-bottom: 2px solid var(--signal);
+  }
+
+  /* ── HERO ───────────────────────────────────────────────────────────── */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(2.5rem, 5vw, 4rem) clamp(4rem, 9vw, 8rem);
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
+    gap: clamp(1.5rem, 4vw, 4rem);
+    align-items: end;
+  }
+
+  .hero h1 { margin-block: clamp(1.2rem, 2.5vw, 2.2rem) clamp(1.4rem, 3vw, 2.4rem); }
+
+  .hero .lede { color: var(--field-muted); }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: clamp(.9rem, 2vw, 1.8rem);
+    margin-top: clamp(1.8rem, 3.5vw, 2.8rem);
+  }
+
+  .btn {
+    display: inline-block;
+    background: var(--signal);
+    color: var(--on-signal);
+    font: 700 .82rem/1 var(--mono);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 1.15rem 1.7rem;
+    min-height: 46px;
+    border: 0;
+  }
+
+  .btn:hover { background: var(--signal-field); }
+
+  .btn-line {
+    display: inline-block;
+    font: 700 .82rem/1 var(--mono);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 1.15rem .2rem;
+    min-height: 46px;
+    border-bottom: 2px solid currentColor;
+  }
+
+  .field-sig .btn {
+    background: var(--on-signal);
+    color: var(--signal);
+  }
+
+  .field-sig .btn:hover { background: var(--field-deep); }
+
+  .hero-foot {
+    margin-top: clamp(2.2rem, 4vw, 3.4rem);
+    color: var(--field-muted);
+    border-top: 1px solid var(--rule-field);
+    padding-top: 1rem;
+  }
+
+  .markwrap {
+    position: relative;
+    justify-self: end;
+    width: min(100%, 30rem);
+    margin-right: clamp(-5rem, -5vw, -1rem);
+  }
+
+  .mark { display: block; width: 100%; height: auto; }
+
+  /* ── BAND ───────────────────────────────────────────────────────────── */
+  .band { padding-block: clamp(1.8rem, 3.5vw, 3rem); }
+
+  .band-in {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: clamp(1.2rem, 3vw, 2.5rem);
+  }
+
+  .band b {
+    font: 700 clamp(1.7rem, 3.6vw, 2.9rem)/1 var(--mono);
+    letter-spacing: -.05em;
+    display: block;
+  }
+
+  .band span {
+    font: 600 .72rem/1.4 var(--mono);
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    display: block;
+    margin-top: .55rem;
+  }
+
+  /* ── PILLARS ────────────────────────────────────────────────────────── */
+  .pillar-head {
+    display: grid;
+    grid-template-columns: minmax(0, 7rem) minmax(0, 1fr);
+    gap: clamp(1rem, 3vw, 3rem);
+    align-items: start;
+  }
+
+  .pillar-head .head { max-width: 18ch; }
+
+  .pillar-body {
+    display: grid;
+    grid-template-columns: minmax(0, 7rem) minmax(0, 1fr);
+    gap: clamp(1rem, 3vw, 3rem);
+    margin-top: clamp(1.6rem, 3vw, 2.6rem);
+  }
+
+  .pillar-body > .spacer { display: block; }
+
+  .specs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: clamp(1.5rem, 3vw, 2.6rem) clamp(1.6rem, 4vw, 4rem);
+    margin-top: clamp(2rem, 4vw, 3.2rem);
+    max-width: 78rem;
+  }
+
+  .spec dt {
+    font: 700 .76rem/1.4 var(--mono);
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    padding-bottom: .55rem;
+    margin-bottom: .7rem;
+  }
+
+  .field-bone .spec dt { border-bottom: 2px solid var(--signal); color: var(--signal-ink); }
+  .field-ox .spec dt   { border-bottom: 2px solid var(--signal); color: var(--signal-field); }
+
+  .spec dd { margin: 0; font-size: .97rem; line-height: 1.5; }
+
+  .field-bone .spec dd { color: var(--ground-muted); }
+  .field-ox .spec dd   { color: var(--field-muted); }
+
+  /* ── MCP ROWS ───────────────────────────────────────────────────────── */
+  .rows { margin-top: clamp(2.4rem, 5vw, 4rem); }
+
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+    gap: clamp(.5rem, 3vw, 3rem);
+    padding-block: clamp(1.3rem, 2.6vw, 2.1rem);
+    border-top: 1px solid var(--rule);
+    align-items: baseline;
+  }
+
+  .row:last-child { border-bottom: 1px solid var(--rule); }
+
+  .row h3 {
+    font-size: clamp(1.6rem, 4.4vw, 3.2rem);
+    line-height: .98;
+    letter-spacing: -.035em;
+    font-weight: 800;
+  }
+
+  .row p { color: var(--ground-muted); max-width: 44ch; }
+
+  .row .tag {
+    font: 700 .7rem/1 var(--mono);
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--signal-ink);
+    display: block;
+    margin-bottom: .5rem;
+  }
+
+  .figwrap { overflow-x: auto; margin-top: clamp(2rem, 4vw, 3.4rem); }
+
+  .figwrap svg { min-width: 34rem; display: block; }
+
+  figcaption {
+    font: 500 .8rem/1.5 var(--mono);
+    margin-top: .9rem;
+    max-width: 60ch;
+  }
+
+  .field-bone figcaption { color: var(--ground-muted); }
+  .field-ox figcaption   { color: var(--field-muted); }
+
+  .pull {
+    font-size: clamp(1.2rem, 2.4vw, 1.9rem);
+    line-height: 1.25;
+    letter-spacing: -.02em;
+    font-weight: 700;
+    max-width: 30ch;
+    text-wrap: balance;
+  }
+
+  /* ── CODE ───────────────────────────────────────────────────────────── */
+  .codes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(21rem, 1fr));
+    gap: clamp(1.6rem, 3vw, 3rem);
+    margin-top: clamp(2rem, 4vw, 3rem);
+  }
+
+  .code-title {
+    font: 700 .76rem/1.4 var(--mono);
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--code-key);
+    padding-bottom: .7rem;
+    border-bottom: 1px solid var(--rule-field);
+    margin-bottom: 1.1rem;
+  }
+
+  pre {
+    margin: 0;
+    overflow-x: auto;
+    padding-bottom: .6rem;
+    font: 500 clamp(.78rem, .22vw + .74rem, .875rem)/1.75 var(--mono);
+    color: var(--code-ink);
+    tab-size: 2;
+  }
+
+  .k { color: var(--code-key); }
+  .s { color: var(--code-str); }
+  .n { color: var(--code-num); }
+  .c { color: var(--code-com); font-style: italic; }
+  .f { color: var(--code-fn); }
+
+  /* ── ANALYTICS ──────────────────────────────────────────────────────── */
+  .qa { margin-top: clamp(2rem, 4vw, 3.2rem); max-width: 74rem; }
+
+  .qa > div {
+    padding-block: clamp(1.2rem, 2.4vw, 1.9rem);
+    border-top: 1px solid var(--rule-field);
+  }
+
+  .qa > div:last-child { border-bottom: 1px solid var(--rule-field); }
+
+  .q {
+    font: 700 clamp(1rem, 1.6vw, 1.3rem)/1.35 var(--mono);
+    color: var(--signal-field);
+    letter-spacing: -.01em;
+  }
+
+  .a { margin-top: .55rem; color: var(--field-muted); max-width: 62ch; }
+
+  .stream {
+    position: relative;
+    overflow: hidden;
+    margin-top: clamp(2rem, 4vw, 3rem);
+    border-top: 1px solid var(--rule-field);
+    border-bottom: 1px solid var(--rule-field);
+    padding-block: 1rem;
+  }
+
+  .stream p {
+    font: 500 .78rem/1.6 var(--mono);
+    color: var(--field-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .scan {
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 3px;
+    background: var(--signal);
+    animation: sweep 5.5s linear infinite;
+  }
+
+  @keyframes sweep {
+    from { left: 0; }
+    to   { left: calc(100% - 3px); }
+  }
+
+  /* ── DEPLOY ─────────────────────────────────────────────────────────── */
+  .deploy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: clamp(1.5rem, 3vw, 3rem);
+    margin-top: clamp(2rem, 4vw, 3.2rem);
+  }
+
+  .deploy-grid li {
+    border-top: 2px solid var(--ground-ink);
+    padding-top: .9rem;
+    font-size: .98rem;
+    color: var(--ground-muted);
+  }
+
+  .deploy-grid li b {
+    display: block;
+    font: 700 .76rem/1.4 var(--mono);
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ground-ink);
+    margin-bottom: .45rem;
+  }
+
+  .cmd {
+    margin-top: clamp(2rem, 4vw, 3rem);
+    font: 500 clamp(.8rem, .3vw + .74rem, .95rem)/1.9 var(--mono);
+    overflow-x: auto;
+    white-space: pre;
+    padding-block: 1rem;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    color: var(--ground-muted);
+  }
+
+  .cmd b { color: var(--ground-ink); font-weight: 700; }
+
+  /* ── CTA ────────────────────────────────────────────────────────────── */
+  .cta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+    gap: clamp(1.5rem, 4vw, 4rem);
+    align-items: end;
+  }
+
+  /* ── FOOTER ─────────────────────────────────────────────────────────── */
+  .ft { padding-block: clamp(3rem, 6vw, 5rem) clamp(2rem, 4vw, 3rem); }
+
+  .ft-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: clamp(1.5rem, 3vw, 3rem);
+  }
+
+  .ft h4 {
+    margin: 0 0 .9rem;
+    font: 700 .72rem/1.4 var(--mono);
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--code-key);
+  }
+
+  .ft li { margin-bottom: .5rem; }
+
+  .ft a {
+    font: 500 .86rem/1.5 var(--mono);
+    text-decoration: none;
+    color: var(--code-ink);
+  }
+
+  .ft a:hover { color: var(--code-key); text-decoration: underline; }
+
+  .ft-base {
+    margin-top: clamp(2.4rem, 5vw, 4rem);
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--rule-field);
+    font: 500 .78rem/1.6 var(--mono);
+    color: var(--code-com);
+    display: grid;
+    gap: .5rem;
+  }
+
+  /* ── ENTRANCE MOTION ────────────────────────────────────────────────── */
+  @media (prefers-reduced-motion: no-preference) {
+    .js .rv {
+      clip-path: inset(0 100% 0 0);
+      transition: clip-path .85s cubic-bezier(.16, 1, .3, 1);
+      transition-delay: var(--d, 0ms);
+    }
+
+    .js .rv.is-in { clip-path: inset(0 0 0 0); }
+
+    /* The clip has no job left once the wipe has finished, and leaving it in
+       place actively breaks things: display type is set below line-height 1, so
+       glyphs overflow their line box and a clip at inset(0) slices every
+       descender. Two elements are also overflow-x scrollers, whose scrollbars
+       get cropped the same way. Dropping the property removes the clipping
+       context altogether. */
+    .js .rv.rv-done {
+      clip-path: none;
+      transition: none;
+    }
+
+    .m-arch, .m-chev {
+      stroke-dashoffset: 0;
+      animation: draw .9s cubic-bezier(.5, 0, .1, 1) both;
+    }
+
+    .m-arch { stroke-dasharray: 315; animation-delay: .1s; }
+    .m-chev { stroke-dasharray: 290; animation-delay: .7s; }
+
+    .m-stem { animation: growY .5s cubic-bezier(.4, 0, .1, 1) both; }
+    .m-stem-l { animation-delay: .45s; }
+    .m-stem-r { animation-delay: .58s; }
+
+    .m-diamond { animation: pop .38s cubic-bezier(.2, 1.5, .4, 1) both; animation-delay: 1.3s; }
+    .m-bar { animation: growX .5s cubic-bezier(.4, 0, .1, 1) both; animation-delay: 1.45s; }
+    .m-tooth { animation: growY .3s ease-out both; }
+    .m-t1 { animation-delay: 1.85s; }
+    .m-t2 { animation-delay: 1.95s; }
+  }
+
+  @keyframes draw   { from { stroke-dashoffset: var(--len, 320); } to { stroke-dashoffset: 0; } }
+  @keyframes growY  { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes growX  { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes pop    { from { transform: rotate(45deg) scale(0); } to { transform: rotate(45deg) scale(1); } }
+
+  .m-arch { --len: 315; }
+  .m-chev { --len: 290; }
+  .m-stem, .m-tooth { transform-box: fill-box; transform-origin: top center; }
+  .m-bar { transform-box: fill-box; transform-origin: left center; }
+  .m-diamond { transform-box: fill-box; transform-origin: center; transform: rotate(45deg); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .001ms !important;
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important;
+      transition-delay: 0ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* ── RESPONSIVE ─────────────────────────────────────────────────────── */
+  @media (max-width: 62rem) {
+    .hero-grid { grid-template-columns: minmax(0, 1fr); }
+
+    .markwrap {
+      justify-self: start;
+      width: min(100%, 20rem);
+      margin-right: 0;
+      order: -1;
+    }
+
+    .pillar-head, .pillar-body { grid-template-columns: minmax(0, 1fr); }
+    .pillar-body > .spacer { display: none; }
+    .row { grid-template-columns: minmax(0, 1fr); gap: .6rem; }
+  }
+
+  /* ── DESIGN-REVIEW APPENDIX ─────────────────────────────────────────── */
+  .dvp {
+    background: var(--ground);
+    color: var(--ground-ink);
+    padding: clamp(2.5rem, 5vw, 4rem) clamp(1.15rem, 4vw, 4.5rem);
+    border-top: 2px solid var(--signal);
+  }
+
+  .dvp h2 {
+    font: 700 .78rem/1.4 var(--mono);
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--signal-ink);
+    margin-bottom: 1.4rem;
+  }
+
+  .dvp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: .9rem 1.4rem;
+    max-width: 1720px;
+    margin-inline: auto;
+  }
+
+  .dvp-sw {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    font: 500 .74rem/1.4 var(--mono);
+  }
+
+  .dvp-sw b { font-weight: 700; }
+
+  .dvp-sw code { margin-left: auto; color: var(--ground-muted); }
+
+  .dvp-chip {
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+    box-shadow: inset 0 0 0 1px rgba(128, 128, 128, .55);
+  }
+
+  .dvp-switch {
+    position: fixed;
+    right: .9rem;
+    bottom: .9rem;
+    z-index: 50;
+    display: flex;
+    gap: 2px;
+    padding: 2px;
+    background: var(--field);
+    box-shadow: 0 2px 14px rgba(0, 0, 0, .35);
+  }
+
+  .dvp-switch button {
+    font: 700 .68rem/1 var(--mono);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    padding: .7rem .85rem;
+    min-height: 40px;
+    border: 0;
+    cursor: pointer;
+    background: transparent;
+    color: var(--field-ink);
+  }
+
+  .dvp-switch button[aria-pressed="true"] {
+    background: var(--signal);
+    color: var(--on-signal);
+  }
+</style>
+
+<!-- Set the scripting flag during parsing, before anything paints. Adding it
+     from the script at the foot of the page meant the reveal targets rendered
+     unclipped first, then vanished, then wiped back in — a flash that read as
+     the page breaking rather than as an entrance. -->
+<script>document.documentElement.classList.add('js');</script>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="hd field-ox">
+  <div class="wrap hd-in">
+    <a class="brand" href="#main">
+      <svg width="26" height="30" viewBox="0 0 280 320" aria-hidden="true" focusable="false">
+        <path d="M40 120 A100 100 0 0 1 240 120" fill="none" stroke="var(--signal)" stroke-width="22"/>
+        <rect x="30" y="120" width="20" height="110" fill="var(--field-ink)"/>
+        <rect x="230" y="120" width="20" height="110" fill="var(--field-ink)"/>
+        <path d="M50 132 L140 238 L230 132" fill="none" stroke="var(--field-ink)" stroke-width="20"/>
+        <rect x="30" y="286" width="220" height="14" fill="var(--field-ink)"/>
+      </svg>
+      <span class="brand-word">Marque</span>
+    </a>
+
+    <nav aria-label="Primary">
+      <a href="#authorization">Authorization</a>
+      <a href="#analytics">Analytics</a>
+      <a href="#agents">Agents</a>
+      <a href="#deploy">Self-hosting</a>
+    </nav>
+
+    <a class="hd-cta" href="#deploy">Get the binary</a>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ── HERO ──────────────────────────────────────────────────────────── -->
+  <section class="hero field-ox">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow rv">Self-hosted identity &middot; OIDC &middot; OAuth 2.1 &middot; SAML &middot; SCIM &middot; MCP</p>
+
+        <h1 class="display rv" style="--d:80ms">Delegated authority, on the record.</h1>
+
+        <p class="lede rv" style="--d:160ms">
+          Marque issues the credentials your systems run on — for people, for services, and for AI agents.
+          Every grant is narrow, signed and revocable. It runs on your hardware and answers to your audit.
+        </p>
+
+        <div class="actions rv" style="--d:220ms">
+          <a class="btn" href="#agents">Read the grant model</a>
+          <a class="btn-line" href="#deploy">Deploy in six minutes</a>
+        </div>
+
+        <p class="mono hero-foot rv" style="--d:280ms">
+          one binary &nbsp;/&nbsp; postgres 16 &nbsp;/&nbsp; no phone-home &nbsp;/&nbsp; apache 2.0 core
+        </p>
+      </div>
+
+      <div class="markwrap">
+        <svg class="mark" viewBox="0 0 280 320" role="img" aria-labelledby="mark-t">
+          <title id="mark-t">The Marque monogram: an arch of authority over a chevron, closed by a key bar</title>
+          <path class="m-arch" d="M40 120 A100 100 0 0 1 240 120" fill="none"
+                stroke="var(--signal)" stroke-width="22"/>
+          <rect class="m-stem m-stem-l" x="30" y="120" width="20" height="112" fill="var(--field-ink)"/>
+          <rect class="m-stem m-stem-r" x="230" y="120" width="20" height="112" fill="var(--field-ink)"/>
+          <path class="m-chev" d="M50 132 L140 238 L230 132" fill="none"
+                stroke="var(--field-ink)" stroke-width="20" stroke-linejoin="miter"/>
+          <rect class="m-diamond" x="126" y="244" width="28" height="28" fill="var(--signal)"/>
+          <rect class="m-bar" x="30" y="286" width="220" height="14" fill="var(--field-ink)"/>
+          <rect class="m-tooth m-t1" x="182" y="300" width="14" height="16" fill="var(--signal)"/>
+          <rect class="m-tooth m-t2" x="210" y="300" width="14" height="16" fill="var(--signal)"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── LEDGER BAND ───────────────────────────────────────────────────── -->
+  <section class="band field-sig">
+    <div class="wrap band-in">
+      <p class="rv"><b>4&#8202;ms</b><span>p99 token verification</span></p>
+      <p class="rv" style="--d:90ms"><b>12k/s</b><span>grants issued per node</span></p>
+      <p class="rv" style="--d:180ms"><b>&lt;1s</b><span>agent grant to full revocation</span></p>
+      <p class="rv" style="--d:270ms"><b>0</b><span>bytes leaving your network</span></p>
+    </div>
+  </section>
+
+  <!-- ── PILLAR 01 ─────────────────────────────────────────────────────── -->
+  <section class="field-bone" id="authorization">
+    <div class="wrap">
+      <div class="pillar-head">
+        <span class="num rv">01</span>
+        <div>
+          <p class="eyebrow rv">Authorization</p>
+          <h2 class="head rv" style="--d:80ms">Authorization other teams build against.</h2>
+        </div>
+      </div>
+
+      <div class="pillar-body">
+        <span class="spacer"></span>
+        <p class="lede lede-wide muted rv" style="--d:140ms">
+          Standards, not a dialect. Point an existing client at Marque and it works on the first try.
+          Then take only the parts your product actually needs.
+        </p>
+      </div>
+
+      <dl class="specs">
+        <div class="spec rv">
+          <dt>OIDC &amp; OAuth 2.1</dt>
+          <dd>Authorization code with PKCE, sender-constrained tokens, refresh rotation on every use, discovery and JWKS where clients already look for them.</dd>
+        </div>
+        <div class="spec rv" style="--d:70ms">
+          <dt>SAML 2.0</dt>
+          <dd>For the enterprise buyer who will not move. Signed assertions, IdP or SP initiated, attribute mapping you can read.</dd>
+        </div>
+        <div class="spec rv" style="--d:140ms">
+          <dt>SCIM 2.0</dt>
+          <dd>People arrive and leave on their own. Joiners, movers and leavers land as events, not as a nightly spreadsheet.</dd>
+        </div>
+        <div class="spec rv" style="--d:210ms">
+          <dt>Fine-grained policy</dt>
+          <dd>Relationship and attribute checks in one evaluator. Every decision returns a reason string, so a denial is debuggable.</dd>
+        </div>
+        <div class="spec rv" style="--d:280ms">
+          <dt>Tenant isolation</dt>
+          <dd>Every row carries its tenant and every query is scoped at the driver. Cross-tenant reads are impossible, not discouraged.</dd>
+        </div>
+        <div class="spec rv" style="--d:350ms">
+          <dt>Keys and machines</dt>
+          <dd>API keys stored as hashes and found by prefix. Client credentials for service-to-service, with the same policy engine as everything else.</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ── PILLAR 02 ─────────────────────────────────────────────────────── -->
+  <section class="field-ox">
+    <div class="wrap">
+      <div class="pillar-head">
+        <span class="num rv">02</span>
+        <div>
+          <p class="eyebrow rv">Analytics</p>
+          <h2 class="head rv" style="--d:80ms">The auth stream reads itself.</h2>
+        </div>
+      </div>
+
+      <div class="pillar-body">
+        <span class="spacer"></span>
+        <p class="lede lede-wide muted rv" style="--d:140ms">
+          Every issue, refresh, denial and revocation is one event on one stream. Marque scores each one as it
+          lands: an unfamiliar device, a login that outran a plane, a service reaching for a scope it has never
+          used before.
+        </p>
+      </div>
+
+      <div class="pillar-body">
+        <span class="spacer"></span>
+        <figure class="figwrap rv" style="--d:200ms">
+          <svg viewBox="0 0 570 175" role="img" aria-label="Risk scores across eighteen hours, with two hours flagged well above the baseline">
+            <line x1="15" y1="156" x2="555" y2="156" stroke="var(--rule-field)" stroke-width="1"/>
+            <rect x="15"  y="113" width="20" height="42"  fill="var(--field-muted)"/>
+            <rect x="45"  y="97"  width="20" height="58"  fill="var(--field-muted)"/>
+            <rect x="75"  y="105" width="20" height="50"  fill="var(--field-muted)"/>
+            <rect x="105" y="89"  width="20" height="66"  fill="var(--field-muted)"/>
+            <rect x="135" y="101" width="20" height="54"  fill="var(--field-muted)"/>
+            <rect x="165" y="79"  width="20" height="76"  fill="var(--field-muted)"/>
+            <rect x="195" y="93"  width="20" height="62"  fill="var(--field-muted)"/>
+            <rect x="225" y="5"   width="20" height="150" fill="var(--signal)"/>
+            <rect x="255" y="85"  width="20" height="70"  fill="var(--field-muted)"/>
+            <rect x="285" y="97"  width="20" height="58"  fill="var(--field-muted)"/>
+            <rect x="315" y="81"  width="20" height="74"  fill="var(--field-muted)"/>
+            <rect x="345" y="91"  width="20" height="64"  fill="var(--field-muted)"/>
+            <rect x="375" y="13"  width="20" height="142" fill="var(--signal)"/>
+            <rect x="405" y="100" width="20" height="55"  fill="var(--field-muted)"/>
+            <rect x="435" y="92"  width="20" height="63"  fill="var(--field-muted)"/>
+            <rect x="465" y="107" width="20" height="48"  fill="var(--field-muted)"/>
+            <rect x="495" y="97"  width="20" height="58"  fill="var(--field-muted)"/>
+            <rect x="525" y="111" width="20" height="44"  fill="var(--field-muted)"/>
+            <text x="225" y="172" font-family="ui-monospace, Consolas, monospace" font-size="12"
+                  fill="var(--signal-field)">03:11 flagged</text>
+            <text x="375" y="172" font-family="ui-monospace, Consolas, monospace" font-size="12"
+                  fill="var(--signal-field)">14:02 flagged</text>
+          </svg>
+          <figcaption>
+            Risk score per hour, one deployment, one day. Two hours crossed the line and opened tickets on their own.
+            Figures are illustrative.
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PILLAR 03 — MCP ───────────────────────────────────────────────── -->
+  <section class="field-bone" id="agents">
+    <div class="wrap">
+      <div class="pillar-head">
+        <span class="num rv">03</span>
+        <div>
+          <p class="eyebrow rv">Model Context Protocol &middot; the pillar the name argues for</p>
+          <h2 class="head rv" style="--d:80ms">A letter of marque for every agent.</h2>
+        </div>
+      </div>
+
+      <div class="pillar-body">
+        <span class="spacer"></span>
+        <div>
+          <p class="lede lede-wide rv" style="--d:140ms">
+            A letter of marque was a document granting one party authority to act for another — within stated
+            limits, for a stated time, on the public record. That is precisely what a delegated token is.
+          </p>
+          <p class="lede lede-wide muted rv" style="--d:200ms; margin-top:1rem">
+            Marque treats an AI agent as a principal in its own right. It never borrows a human session, never
+            inherits a human's full rights, and never acts without a paper trail.
+          </p>
+        </div>
+      </div>
+
+      <div class="rows">
+        <div class="row rv">
+          <h3><span class="tag">01</span>Scoped</h3>
+          <p>A grant names the MCP server, the exact tools, and the ceilings — calls, rows, spend. Anything unnamed is denied. There is no wildcard.</p>
+        </div>
+        <div class="row rv" style="--d:70ms">
+          <h3><span class="tag">02</span>Time-bound</h3>
+          <p>Grants carry a clock, and the default is minutes. An agent that finishes its work holds nothing afterwards. Nothing sits in a config file forever.</p>
+        </div>
+        <div class="row rv" style="--d:140ms">
+          <h3><span class="tag">03</span>Auditable</h3>
+          <p>The delegation chain is recorded on every call: which person, which agent, which tool, which rows. An answer to "who read this" takes one query, not one week.</p>
+        </div>
+        <div class="row rv" style="--d:210ms">
+          <h3><span class="tag">04</span>Revocable</h3>
+          <p>One call kills a grant, a whole agent, or every agent acting for one person. Revocation reaches the edge in under a second, because verification checks the live grant.</p>
+        </div>
+      </div>
+
+      <figure class="figwrap rv">
+        <svg viewBox="0 0 720 150" role="img"
+             aria-label="A grant strip: three named tool scopes and a row ceiling, cut off hard at a twenty-minute expiry, with the remainder of the track empty">
+          <text x="20" y="28" font-family="ui-monospace, Consolas, monospace" font-size="13"
+                font-weight="700" fill="var(--signal-ink)">GRANT grn_7QW &#183; agent:planner-3 on behalf of user:8f21</text>
+
+          <rect x="20" y="54" width="680" height="24" fill="var(--rule)"/>
+          <rect x="20" y="54" width="170" height="24" fill="var(--ground-ink)"/>
+          <rect x="198" y="54" width="150" height="24" fill="var(--ground-ink)"/>
+          <rect x="356" y="54" width="100" height="24" fill="var(--ground-ink)"/>
+          <rect x="464" y="54" width="76" height="24" fill="var(--signal)"/>
+
+          <line x1="548" y1="34" x2="548" y2="98" stroke="var(--ground-ink)" stroke-width="4"/>
+
+          <text x="20"  y="100" font-family="ui-monospace, Consolas, monospace" font-size="12" fill="var(--ground-muted)">invoices.read</text>
+          <text x="198" y="100" font-family="ui-monospace, Consolas, monospace" font-size="12" fill="var(--ground-muted)">invoices.summarise</text>
+          <text x="356" y="100" font-family="ui-monospace, Consolas, monospace" font-size="12" fill="var(--ground-muted)">rows &#8804; 5000</text>
+          <text x="464" y="100" font-family="ui-monospace, Consolas, monospace" font-size="12" fill="var(--signal-ink)">kill switch</text>
+          <text x="548" y="126" font-family="ui-monospace, Consolas, monospace" font-size="13" font-weight="700" fill="var(--ground-ink)">expires t+20m</text>
+          <text x="600" y="72" font-family="ui-monospace, Consolas, monospace" font-size="12" fill="var(--ground-muted)">nothing beyond</text>
+        </svg>
+        <figcaption>
+          One grant, drawn to scale. The dark blocks are what the agent may do. Everything past the cut is what
+          it may not, including one second after the clock runs out.
+        </figcaption>
+      </figure>
+
+      <p class="pull rv" style="margin-top:clamp(2rem,4vw,3rem)">
+        Authorise the tool call, not the session. That is the whole difference.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── CODE ──────────────────────────────────────────────────────────── -->
+  <section class="field-dark" id="code">
+    <div class="wrap">
+      <p class="eyebrow rv">Two grants, in full</p>
+      <h2 class="head rv" style="--d:80ms">Verify a person. Commission an agent.</h2>
+
+      <div class="codes">
+        <div class="rv">
+          <p class="code-title">Verify an OIDC access token &mdash; any Node framework</p>
+<pre><code><span class="c">// Marque publishes discovery and JWKS where clients look.</span>
+<span class="k">import</span> { <span class="f">createVerifier</span> } <span class="k">from</span> <span class="s">"@marque/verify"</span>;
+
+<span class="k">const</span> marque = <span class="f">createVerifier</span>({
+  issuer:   <span class="s">"https://auth.acme.internal"</span>,
+  audience: <span class="s">"orders-api"</span>,
+  clock:    { skewSeconds: <span class="n">30</span> },
+});
+
+<span class="k">export async function</span> <span class="f">guard</span>(req: <span class="f">Request</span>) {
+  <span class="k">const</span> claim = <span class="k">await</span> marque.<span class="f">verify</span>(req.headers.<span class="f">get</span>(<span class="s">"authorization"</span>));
+
+  <span class="k">if</span> (!claim.ok)                          <span class="k">return</span> <span class="f">deny</span>(<span class="n">401</span>, claim.reason);
+  <span class="k">if</span> (!claim.scopes.<span class="f">has</span>(<span class="s">"orders:write"</span>)) <span class="k">return</span> <span class="f">deny</span>(<span class="n">403</span>, <span class="s">"scope"</span>);
+
+  <span class="c">// "user:8f21", or "agent:planner-3" acting for one.</span>
+  <span class="k">return</span> claim.principal;
+}</code></pre>
+        </div>
+
+        <div class="rv" style="--d:120ms">
+          <p class="code-title">Issue a letter of marque to an MCP agent</p>
+<pre><code><span class="c"># A grant names the server, the tools and the clock.</span>
+<span class="k">POST</span> /v1/grants <span class="f">HTTP</span>/1.1
+<span class="f">Host</span>: auth.acme.internal
+<span class="f">Idempotency-Key</span>: 01J9F3T2QK7YB
+
+{
+  <span class="k">"principal"</span>:    <span class="s">"agent:planner-3"</span>,
+  <span class="k">"on_behalf_of"</span>: <span class="s">"user:8f21"</span>,
+  <span class="k">"audience"</span>:     <span class="s">"mcp://acme/invoices"</span>,
+  <span class="k">"tools"</span>:        [<span class="s">"invoices.read"</span>, <span class="s">"invoices.summarise"</span>],
+  <span class="k">"limits"</span>:       { <span class="k">"calls"</span>: <span class="n">200</span>, <span class="k">"rows"</span>: <span class="n">5000</span> },
+  <span class="k">"expires_in"</span>:   <span class="s">"20m"</span>,
+  <span class="k">"revocable"</span>:    <span class="n">true</span>
+}
+
+<span class="f">201 Created</span>
+{
+  <span class="k">"grant"</span>: <span class="s">"grn_7QW3d1x"</span>,
+  <span class="k">"chain"</span>: [<span class="s">"user:8f21"</span>, <span class="s">"agent:planner-3"</span>],
+  <span class="k">"revoke"</span>: <span class="s">"DELETE /v1/grants/grn_7QW3d1x"</span>
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ANALYTICS DETAIL ──────────────────────────────────────────────── -->
+  <section class="field-ox" id="analytics">
+    <div class="wrap">
+      <p class="eyebrow rv">Ask the stream</p>
+      <h2 class="head rv" style="--d:80ms">Questions in plain words. Answers from your own log.</h2>
+
+      <div class="qa">
+        <div class="rv">
+          <p class="q">who read invoices in the last hour?</p>
+          <p class="a">Four principals. Three people, one agent. The agent read 212 rows under a grant that expired at 14:20 and was not renewed.</p>
+        </div>
+        <div class="rv" style="--d:70ms">
+          <p class="q">anything odd about the billing service today?</p>
+          <p class="a">It asked for refunds:write at 03:11, the first time in ninety days. Policy denied it, the event was flagged, and a ticket is open with the request id attached.</p>
+        </div>
+        <div class="rv" style="--d:140ms">
+          <p class="q">which grants do agents still hold?</p>
+          <p class="a">Nine live grants across two tenants. Two expire within the hour. One has never been used and can be dropped without breaking anything.</p>
+        </div>
+      </div>
+
+      <div class="stream" aria-hidden="true">
+        <span class="scan"></span>
+        <p>14:02:11 grant.issued agent:planner-3 &#183; 14:02:12 tool.call invoices.read rows=48 &#183; 14:02:19 policy.deny scope=refunds:write &#183; 14:02:19 risk.score 0.91 flagged &#183; 14:02:20 grant.revoked grn_7QW3d1x</p>
+      </div>
+
+      <p class="mono muted rv" style="margin-top:1.2rem;max-width:64ch">
+        The model runs inside your deployment, against your event store. No log line is sent anywhere for
+        scoring, ever.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── DEPLOY ────────────────────────────────────────────────────────── -->
+  <section class="field-bone" id="deploy">
+    <div class="wrap">
+      <p class="eyebrow rv">Self-hosting</p>
+      <h2 class="head rv" style="--d:80ms">Your hardware. Your data. Your audit trail.</h2>
+
+      <div class="pillar-body" style="grid-template-columns:minmax(0,1fr)">
+        <p class="lede lede-wide muted rv" style="--d:140ms">
+          Marque is a single binary and a PostgreSQL database. If you can run those, you can run your own
+          identity provider, and you can keep running it when your network is cut off from the world.
+        </p>
+      </div>
+
+      <ul class="deploy-grid">
+        <li class="rv"><b>Laptop</b>One compose file brings up the server, the database and a seeded tenant. It is ready before your coffee is.</li>
+        <li class="rv" style="--d:70ms"><b>Cluster</b>A Helm chart with sane defaults, horizontal scaling, and rolling upgrades that do not drop a live session.</li>
+        <li class="rv" style="--d:140ms"><b>Air-gapped</b>No outbound calls, no licence check, no telemetry. The install works with the cable unplugged.</li>
+        <li class="rv" style="--d:210ms"><b>Keys</b>Signing keys live in your KMS or on your disk. Rotation is scheduled and old keys stay published until the last token expires.</li>
+        <li class="rv" style="--d:280ms"><b>Backups</b>A backup is a pg_dump. A restore is a pg_restore. There is no proprietary state hiding elsewhere.</li>
+        <li class="rv" style="--d:350ms"><b>Migration</b>Importers read realms, users and clients from Keycloak or Okta, so moving is a weekend rather than a quarter.</li>
+      </ul>
+
+      <div class="cmd rv"><b>$ marque up</b> --tenant acme --oidc --saml --mcp
+<b>$ marque import</b> --from keycloak --realm acme --dry-run
+<b>$ marque grants revoke</b> --agent planner-3 --all</div>
+    </div>
+  </section>
+
+  <!-- ── CTA ───────────────────────────────────────────────────────────── -->
+  <section class="field-sig">
+    <div class="wrap cta-grid">
+      <div>
+        <p class="eyebrow rv">Start here</p>
+        <h2 class="head rv" style="--d:80ms">Issue your first grant.</h2>
+      </div>
+      <div>
+        <p class="lede rv" style="--d:140ms">
+          Pull the binary, point a client at it, and commission an agent with twenty minutes of authority.
+          Take it away again while it is still working.
+        </p>
+        <div class="actions rv" style="--d:200ms">
+          <a class="btn" href="#deploy">Download Marque</a>
+          <a class="btn-line" href="#code">Read the API</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="ft field-dark">
+  <div class="wrap">
+    <div class="ft-grid">
+      <div>
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#authorization">Authorization</a></li>
+          <li><a href="#analytics">Analytics</a></li>
+          <li><a href="#agents">Agent grants</a></li>
+          <li><a href="#deploy">Self-hosting</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Protocols</h4>
+        <ul>
+          <li><a href="#code">OIDC</a></li>
+          <li><a href="#code">OAuth 2.1</a></li>
+          <li><a href="#authorization">SAML 2.0</a></li>
+          <li><a href="#authorization">SCIM 2.0</a></li>
+          <li><a href="#agents">MCP</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Operate</h4>
+        <ul>
+          <li><a href="#deploy">Compose</a></li>
+          <li><a href="#deploy">Helm</a></li>
+          <li><a href="#deploy">Key rotation</a></li>
+          <li><a href="#deploy">Backups</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Marque</h4>
+        <ul>
+          <li><a href="#main">Licence</a></li>
+          <li><a href="#main">Security</a></li>
+          <li><a href="#main">Changelog</a></li>
+          <li><a href="#main">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ft-base">
+      <p>Marque &mdash; delegated authority, on the record. Apache 2.0 core.</p>
+      <p>Marque is a fictional product created for a design exercise. All figures, benchmarks and examples are illustrative.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ── DESIGN-REVIEW PALETTE ───────────────────────────────────────────── -->
+<section class="dvp">
+  <h2>Palette tokens &mdash; read live from the stylesheet</h2>
+  <div class="dvp-grid">
+    <div class="dvp-sw" data-token="--field"><span class="dvp-chip" style="background: var(--field)"></span><b>--field</b><code></code></div>
+    <div class="dvp-sw" data-token="--field-deep"><span class="dvp-chip" style="background: var(--field-deep)"></span><b>--field-deep</b><code></code></div>
+    <div class="dvp-sw" data-token="--field-ink"><span class="dvp-chip" style="background: var(--field-ink)"></span><b>--field-ink</b><code></code></div>
+    <div class="dvp-sw" data-token="--field-muted"><span class="dvp-chip" style="background: var(--field-muted)"></span><b>--field-muted</b><code></code></div>
+    <div class="dvp-sw" data-token="--ground"><span class="dvp-chip" style="background: var(--ground)"></span><b>--ground</b><code></code></div>
+    <div class="dvp-sw" data-token="--ground-ink"><span class="dvp-chip" style="background: var(--ground-ink)"></span><b>--ground-ink</b><code></code></div>
+    <div class="dvp-sw" data-token="--ground-muted"><span class="dvp-chip" style="background: var(--ground-muted)"></span><b>--ground-muted</b><code></code></div>
+    <div class="dvp-sw" data-token="--signal"><span class="dvp-chip" style="background: var(--signal)"></span><b>--signal</b><code></code></div>
+    <div class="dvp-sw" data-token="--signal-field"><span class="dvp-chip" style="background: var(--signal-field)"></span><b>--signal-field</b><code></code></div>
+    <div class="dvp-sw" data-token="--signal-ink"><span class="dvp-chip" style="background: var(--signal-ink)"></span><b>--signal-ink</b><code></code></div>
+    <div class="dvp-sw" data-token="--on-signal"><span class="dvp-chip" style="background: var(--on-signal)"></span><b>--on-signal</b><code></code></div>
+    <div class="dvp-sw" data-token="--code-bg"><span class="dvp-chip" style="background: var(--code-bg)"></span><b>--code-bg</b><code></code></div>
+    <div class="dvp-sw" data-token="--code-ink"><span class="dvp-chip" style="background: var(--code-ink)"></span><b>--code-ink</b><code></code></div>
+    <div class="dvp-sw" data-token="--code-key"><span class="dvp-chip" style="background: var(--code-key)"></span><b>--code-key</b><code></code></div>
+    <div class="dvp-sw" data-token="--code-str"><span class="dvp-chip" style="background: var(--code-str)"></span><b>--code-str</b><code></code></div>
+    <div class="dvp-sw" data-token="--code-num"><span class="dvp-chip" style="background: var(--code-num)"></span><b>--code-num</b><code></code></div>
+    <div class="dvp-sw" data-token="--code-com"><span class="dvp-chip" style="background: var(--code-com)"></span><b>--code-com</b><code></code></div>
+    <div class="dvp-sw" data-token="--code-fn"><span class="dvp-chip" style="background: var(--code-fn)"></span><b>--code-fn</b><code></code></div>
+    <div class="dvp-sw" data-token="--rule"><span class="dvp-chip" style="background: var(--rule)"></span><b>--rule</b><code></code></div>
+    <div class="dvp-sw" data-token="--rule-field"><span class="dvp-chip" style="background: var(--rule-field)"></span><b>--rule-field</b><code></code></div>
+    <div class="dvp-sw" data-token="--focus"><span class="dvp-chip" style="background: var(--focus)"></span><b>--focus</b><code></code></div>
+    <div class="dvp-sw" data-token="--focus-halo"><span class="dvp-chip" style="background: var(--focus-halo)"></span><b>--focus-halo</b><code></code></div>
+  </div>
+</section>
+
+<div class="dvp-switch" role="group" aria-label="Colour theme">
+  <button type="button" data-mode="light" aria-pressed="false">Light</button>
+  <button type="button" data-mode="dark" aria-pressed="false">Dark</button>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+
+    root.classList.add('js');
+
+    /* ── theme ────────────────────────────────────────────────────────── */
+    var buttons = Array.prototype.slice.call(document.querySelectorAll('.dvp-switch button'));
+    var swatches = Array.prototype.slice.call(document.querySelectorAll('.dvp-sw'));
+
+    function readTokens() {
+      var styles = getComputedStyle(root);
+
+      swatches.forEach(function (sw) {
+        var token = sw.getAttribute('data-token');
+        var out = sw.querySelector('code');
+
+        if (token && out) out.textContent = styles.getPropertyValue(token).trim();
+      });
+    }
+
+    function apply(mode) {
+      root.dataset.theme = mode;
+
+      buttons.forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
+      });
+
+      requestAnimationFrame(readTokens);
+    }
+
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () { apply(b.dataset.mode); });
+    });
+
+    var initial = root.dataset.theme
+      || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+    apply(initial);
+
+    /* ── scroll reveal ────────────────────────────────────────────────── */
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var targets = Array.prototype.slice.call(document.querySelectorAll('.rv'));
+
+    function settle(el) {
+      el.classList.add('is-in', 'rv-done');
+    }
+
+    if (reduced || !('IntersectionObserver' in window)) {
+      targets.forEach(settle);
+      return;
+    }
+
+    // Retiring the clip is driven by the transition actually ending, with a
+    // timer as backstop: transitionend does not fire for an element that was
+    // already in its final state, or one whose transition was interrupted.
+    function reveal(el) {
+      el.classList.add('is-in');
+
+      var delay = parseFloat(getComputedStyle(el).transitionDelay) || 0;
+      var guard = setTimeout(function () { el.classList.add('rv-done'); }, delay * 1000 + 1100);
+
+      el.addEventListener('transitionend', function done(event) {
+        if (event.propertyName !== 'clip-path') return;
+
+        clearTimeout(guard);
+        el.classList.add('rv-done');
+        el.removeEventListener('transitionend', done);
+      });
+    }
+
+    // threshold 0, not a fraction: an element taller than the viewport can
+    // never reach a fractional visibility and would stay clipped for good.
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+
+        reveal(entry.target);
+        io.unobserve(entry.target);
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0 });
+
+    targets.forEach(function (el) { io.observe(el); });
+
+    // Last resort. Content that is merely un-animated is a blemish; content
+    // stuck at inset(0 100% 0 0) is invisible, and that is never acceptable.
+    setTimeout(function () {
+      targets.forEach(function (el) {
+        if (!el.classList.contains('is-in')) settle(el);
+      });
+    }, 6000);
+  })();
+</script>

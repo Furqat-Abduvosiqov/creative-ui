@@ -1,0 +1,1241 @@
+<title>Bastion — identity for machines that answer to people</title>
+
+<style>
+  /* ============================================================
+     BASTION — direction E, "terminal native"
+     Tokens: full set restated in every theme branch.
+     ============================================================ */
+
+  :root {
+    color-scheme: dark;
+    --bg:        #14161A;
+    --panel:     #191C21;
+    --panel-alt: #1F232A;
+    --border:    #2E333B;
+    --fg:        #E9E4D9;
+    --fg-dim:    #A8A399;
+    --fg-faint:  #6E7178;
+    --amber:     #FFA630;
+    --teal:      #4FB3A5;
+    --red:       #E0685A;
+    --steel:     #85A8C4;
+    --sel:       #3A2F1C;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      color-scheme: light;
+      --bg:        #F3F0E9;
+      --panel:     #FBF9F4;
+      --panel-alt: #EAE5DA;
+      --border:    #D3CCBE;
+      --fg:        #1E2126;
+      --fg-dim:    #55585E;
+      --fg-faint:  #83817A;
+      --amber:     #8F5300;
+      --teal:      #0F6A5C;
+      --red:       #A93C29;
+      --steel:     #2C5A80;
+      --sel:       #F0E2C9;
+    }
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg:        #F3F0E9;
+    --panel:     #FBF9F4;
+    --panel-alt: #EAE5DA;
+    --border:    #D3CCBE;
+    --fg:        #1E2126;
+    --fg-dim:    #55585E;
+    --fg-faint:  #83817A;
+    --amber:     #8F5300;
+    --teal:      #0F6A5C;
+    --red:       #A93C29;
+    --steel:     #2C5A80;
+    --sel:       #F0E2C9;
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg:        #14161A;
+    --panel:     #191C21;
+    --panel-alt: #1F232A;
+    --border:    #2E333B;
+    --fg:        #E9E4D9;
+    --fg-dim:    #A8A399;
+    --fg-faint:  #6E7178;
+    --amber:     #FFA630;
+    --teal:      #4FB3A5;
+    --red:       #E0685A;
+    --steel:     #85A8C4;
+    --sel:       #3A2F1C;
+  }
+
+  /* ---------- base ---------- */
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: ui-monospace, "Cascadia Mono", "Cascadia Code", Consolas, "SF Mono", Menlo, monospace;
+    font-size: 14px;
+    line-height: 1.55;
+    font-variant-ligatures: none;
+    -webkit-text-size-adjust: 100%;
+    overflow-x: hidden;
+    padding-bottom: 2.6rem;
+  }
+
+  ::selection { background: var(--sel); color: var(--fg); }
+
+  a { color: inherit; }
+
+  :focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 2px;
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 18px;
+  }
+
+  .skip {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: var(--amber);
+    color: var(--bg);
+    padding: .4rem .8rem;
+    z-index: 90;
+    text-decoration: none;
+  }
+  .skip:focus { left: 8px; top: 8px; }
+
+  /* ---------- status bars ---------- */
+
+  .bar {
+    background: var(--panel-alt);
+    border-bottom: 1px solid var(--border);
+    font-size: 11.5px;
+    letter-spacing: .04em;
+    color: var(--fg-dim);
+  }
+
+  .bar-top {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+
+  .bar-in {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    gap: 1.2ch;
+    height: 34px;
+  }
+
+  .mark {
+    background: var(--amber);
+    color: var(--bg);
+    font-weight: 700;
+    letter-spacing: .14em;
+    padding: 0 .8ch;
+    white-space: nowrap;
+  }
+
+  .ver { color: var(--fg-faint); white-space: nowrap; }
+
+  .navwrap {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .navwrap::-webkit-scrollbar { display: none; }
+
+  nav.top {
+    display: flex;
+    gap: 2ch;
+    white-space: nowrap;
+    padding-left: 1ch;
+  }
+
+  nav.top a {
+    text-decoration: none;
+    color: var(--fg-dim);
+    border-bottom: 1px solid transparent;
+    padding-bottom: 1px;
+  }
+  nav.top a:hover { color: var(--amber); border-bottom-color: var(--amber); }
+
+  .bar-top .right { white-space: nowrap; color: var(--fg-faint); }
+
+  .bar-bottom {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 45;
+    border-bottom: 0;
+    border-top: 1px solid var(--border);
+  }
+  .bar-bottom .bar-in { height: 28px; gap: 2ch; }
+
+  .mode {
+    color: var(--bg);
+    background: var(--teal);
+    padding: 0 .8ch;
+    font-weight: 700;
+    letter-spacing: .1em;
+  }
+
+  .keyhint { color: var(--fg-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .keyhint kbd {
+    font: inherit;
+    color: var(--amber);
+    border: 1px solid var(--border);
+    padding: 0 .5ch;
+    border-radius: 2px;
+  }
+  .spacer { flex: 1; }
+
+  /* ---------- section headings drawn with box characters ---------- */
+
+  .band { padding: 3.4rem 0 0; }
+  section[id], footer[id] { scroll-margin-top: 44px; }
+
+  .sect {
+    display: flex;
+    align-items: baseline;
+    gap: 1.2ch;
+    margin: 0 0 1.4rem;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--fg);
+  }
+  .sect .tick { color: var(--amber); letter-spacing: 0; }
+  .sect .note {
+    font-weight: 400;
+    letter-spacing: .04em;
+    text-transform: none;
+    color: var(--fg-faint);
+    white-space: nowrap;
+  }
+  .fill {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    color: var(--border);
+    letter-spacing: 0;
+    user-select: none;
+  }
+
+  /* ---------- panels ---------- */
+
+  .panel {
+    border: 1px solid var(--border);
+    background: var(--panel);
+  }
+
+  .panel-hd {
+    display: flex;
+    align-items: center;
+    gap: 1.2ch;
+    padding: .5rem .9rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 11.5px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    background: var(--panel-alt);
+  }
+  .panel-hd .num { color: var(--amber); font-weight: 700; letter-spacing: .06em; }
+  .panel-hd .st { margin-left: auto; letter-spacing: .04em; text-transform: none; color: var(--fg-faint); }
+  .panel-hd .st b { font-weight: 400; color: var(--teal); }
+
+  .panel-bd { padding: 1rem .9rem; }
+
+  .panel-ft {
+    border-top: 1px solid var(--border);
+    padding: .45rem .9rem;
+    font-size: 11.5px;
+    color: var(--fg-faint);
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .panel-ft::-webkit-scrollbar { display: none; }
+
+  .scroll { overflow-x: auto; }
+
+  /* ---------- hero ---------- */
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+    gap: 1.6rem;
+    padding: 2.6rem 0 0;
+    align-items: start;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 27px;
+    font-weight: 700;
+    letter-spacing: .34em;
+    line-height: 1.1;
+  }
+  h1 .blk { color: var(--amber); letter-spacing: 0; }
+
+  .tagline {
+    margin: .9rem 0 0;
+    color: var(--amber);
+    font-size: 14px;
+    letter-spacing: .01em;
+  }
+
+  .lede {
+    margin: 1rem 0 0;
+    color: var(--fg-dim);
+    max-width: 42ch;
+  }
+
+  .cta { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 1ch; }
+
+  .btn {
+    text-decoration: none;
+    color: var(--fg);
+    border: 1px solid var(--border);
+    padding: .42rem .9rem;
+    background: var(--panel);
+    white-space: nowrap;
+  }
+  .btn .br { color: var(--amber); }
+  .btn:hover { background: var(--sel); border-color: var(--amber); }
+  .btn.primary { border-color: var(--amber); }
+  .btn.primary:hover { background: var(--amber); color: var(--bg); }
+  .btn.primary:hover .br { color: var(--bg); }
+
+  .meta {
+    margin-top: 1.5rem;
+    font-size: 11.5px;
+    color: var(--fg-faint);
+    line-height: 1.9;
+  }
+  .meta b { font-weight: 400; color: var(--fg-dim); }
+
+  /* ---------- terminal ---------- */
+
+  .termwrap { overflow-x: auto; }
+
+  .term {
+    padding: .9rem 1rem 1.1rem;
+    font-size: 13px;
+    line-height: 1.72;
+    min-width: 63ch;
+  }
+
+  .cl {
+    display: block;
+    white-space: pre;
+    color: var(--fg-dim);
+  }
+  .cl.pend { display: none; }
+  .cl.cmd { color: var(--fg); margin-top: .55rem; }
+  .cl.cmd:first-child { margin-top: 0; }
+  .cl.cont { margin-top: 0; }
+
+  .pr { color: var(--amber); font-weight: 700; }
+  .bin { font-weight: 700; color: var(--amber); }
+  .fl { color: var(--steel); }
+  .str { color: var(--teal); }
+  .op { color: var(--fg-faint); }
+  .ok { color: var(--teal); font-weight: 700; }
+  .warn { color: var(--amber); font-weight: 700; }
+  .bad { color: var(--red); font-weight: 700; }
+  .dim { color: var(--fg-faint); }
+  .tok { color: var(--fg-faint); word-break: break-all; }
+
+  .cur {
+    display: inline-block;
+    width: 1ch;
+    height: 1.05em;
+    background: var(--amber);
+    vertical-align: text-bottom;
+    animation: blink 1.05s steps(1, end) infinite;
+  }
+  @keyframes blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+
+  .skipbtn {
+    font: inherit;
+    font-size: 11.5px;
+    letter-spacing: .04em;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--fg-dim);
+    padding: 0 .8ch;
+    cursor: pointer;
+  }
+  .skipbtn:hover { color: var(--amber); border-color: var(--amber); }
+  .skipbtn[disabled] { opacity: .4; cursor: default; }
+
+  /* ---------- pillars ---------- */
+
+  .grid3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .pillar h3 {
+    margin: 0 0 .5rem;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    color: var(--fg);
+  }
+  .pillar p {
+    margin: 0 0 .9rem;
+    color: var(--fg-dim);
+    font-size: 13px;
+  }
+
+  .tree {
+    display: block;
+    font-size: 12.5px;
+    line-height: 1.85;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tree::-webkit-scrollbar { display: none; }
+  .tree .row { display: block; white-space: pre; color: var(--fg-dim); }
+  .tree .br { color: var(--border); }
+  .tree .key { color: var(--amber); }
+
+  /* ---------- code panes ---------- */
+
+  .grid2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .code {
+    counter-reset: ln;
+    padding: .8rem 0 .9rem;
+    font-size: 12.5px;
+    line-height: 1.75;
+    min-width: 58ch;
+  }
+  .code .cl {
+    display: block;
+    white-space: pre;
+    color: var(--fg);
+    padding-left: 4.6ch;
+    position: relative;
+    counter-increment: ln;
+    min-height: 1.75em;   /* blank source lines keep their line box */
+  }
+  .code .cl::before {
+    content: counter(ln, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    width: 3.4ch;
+    text-align: right;
+    color: var(--fg-faint);
+    opacity: .65;
+  }
+  .k { color: var(--amber); }
+  .s { color: var(--teal); }
+  .c { color: var(--fg-faint); font-style: normal; }
+  .fn { color: var(--steel); }
+  .pn { color: var(--fg-dim); }
+
+  /* ---------- log stream ---------- */
+
+  .logwrap { overflow-x: auto; }
+  .log {
+    min-width: 92ch;
+    font-size: 12.5px;
+    line-height: 1.9;
+    padding: .7rem 0;
+  }
+  .lrow {
+    display: grid;
+    grid-template-columns: 13ch 7ch 21ch minmax(34ch, 1fr) 8ch;
+    gap: 0 1ch;
+    padding: 0 .9rem;
+  }
+  .lrow:hover { background: var(--panel-alt); }
+  .lrow .t { color: var(--fg-faint); }
+  .lrow .ev { color: var(--fg); }
+  .lrow .d { color: var(--fg-dim); }
+  .lrow .r { text-align: right; }
+  .lv-info { color: var(--fg-faint); }
+  .lv-warn { color: var(--amber); font-weight: 700; }
+  .lv-alert { color: var(--red); font-weight: 700; }
+  .lrow.act { color: var(--red); }
+  .lrow.act .sp { grid-column: 2 / -1; color: var(--red); }
+  .r-lo { color: var(--teal); }
+  .r-mid { color: var(--amber); }
+  .r-hi { color: var(--red); font-weight: 700; }
+
+  .ask { padding: 1rem .9rem .4rem; }
+  .askq {
+    display: block;
+    white-space: pre-wrap;
+    color: var(--fg);
+    margin-bottom: .9rem;
+  }
+  pre.table {
+    margin: 0;
+    font: inherit;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--fg-dim);
+    overflow-x: auto;
+    padding-bottom: .3rem;
+  }
+  /* header cells stay weight 400 so the box-drawing columns cannot drift */
+  pre.table b { color: var(--fg); font-weight: 400; }
+  .spark { color: var(--amber); letter-spacing: 0; }
+
+  /* ---------- deploy ---------- */
+
+  .grid3b {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .mini { font-size: 12.5px; line-height: 1.8; }
+  .mini .cl { color: var(--fg); }
+
+  .specs { display: block; font-size: 12.5px; line-height: 2; }
+  .specs .row { display: grid; grid-template-columns: 12ch minmax(0, 1fr); gap: 1ch; }
+  .specs .row + .row { border-top: 1px dotted var(--border); }
+  .specs dt, .specs .lbl { color: var(--amber); }
+  .specs .val { color: var(--fg-dim); }
+
+  /* ---------- footer ---------- */
+
+  footer { margin-top: 3.6rem; border-top: 1px solid var(--border); background: var(--panel); }
+  .fgrid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.4rem;
+    padding: 1.8rem 0 1.2rem;
+  }
+  .fcol h4 {
+    margin: 0 0 .6rem;
+    font-size: 11.5px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--fg-faint);
+    font-weight: 400;
+  }
+  .fcol a {
+    display: block;
+    text-decoration: none;
+    color: var(--fg-dim);
+    font-size: 12.5px;
+    line-height: 2;
+  }
+  .fcol a:hover { color: var(--amber); }
+  .fcol a::before { content: "· "; color: var(--border); }
+
+  .disc {
+    border-top: 1px solid var(--border);
+    padding: .9rem 0 1.4rem;
+    font-size: 11.5px;
+    color: var(--fg-faint);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1ch 2ch;
+  }
+
+  /* ---------- design-review appendix ---------- */
+
+  .dvp { padding: 2.6rem 0 1rem; }
+  .dvp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(15rem, 100%), 1fr));
+    gap: .5rem;
+    padding: 1rem .9rem;
+  }
+  .dvp-sw {
+    display: flex;
+    align-items: center;
+    gap: 1ch;
+    font-size: 11.5px;
+    border: 1px solid var(--border);
+    padding: .35rem .5rem;
+    background: var(--panel);
+    min-width: 0;
+  }
+  .dvp-chip {
+    width: 1.6rem;
+    height: 1.6rem;
+    flex: 0 0 auto;
+    border: 1px solid var(--border);
+    display: block;
+  }
+  .dvp-sw b { font-weight: 700; color: var(--fg); }
+  .dvp-sw code { font: inherit; color: var(--fg-faint); margin-left: auto; }
+
+  .dvp-switch {
+    position: fixed;
+    right: 14px;
+    bottom: 40px;
+    z-index: 60;
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border);
+    background: var(--panel);
+  }
+  .dvp-switch button {
+    font: inherit;
+    font-size: 11.5px;
+    letter-spacing: .06em;
+    background: none;
+    border: 0;
+    color: var(--fg-dim);
+    padding: .4rem .9rem;
+    cursor: pointer;
+    min-height: 32px;
+  }
+  .dvp-switch button + button { border-left: 1px solid var(--border); }
+  .dvp-switch button:hover { color: var(--amber); }
+  .dvp-switch button[aria-pressed="true"] { background: var(--amber); color: var(--bg); font-weight: 700; }
+
+  /* ---------- responsive ---------- */
+
+  @media (max-width: 960px) {
+    .hero { grid-template-columns: minmax(0, 1fr); }
+    .grid3, .grid2, .grid3b { grid-template-columns: minmax(0, 1fr); }
+    .fgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 560px) {
+    body { font-size: 13px; }
+    .term { font-size: 11.5px; }
+    .code { font-size: 11.5px; }
+    h1 { font-size: 22px; letter-spacing: .26em; }
+    .bar-in { gap: .8ch; }
+    .bar-top .right { display: none; }
+    .fgrid { grid-template-columns: minmax(0, 1fr); }
+    .wrap { padding: 0 12px; }
+    .bar-in { padding: 0 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .001ms !important;
+      animation-delay: 0s !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important;
+      transition-delay: 0s !important;
+      scroll-behavior: auto !important;
+    }
+    .cur { animation: none !important; opacity: 1 !important; }
+  }
+</style>
+
+<a class="skip" href="#main">skip to content</a>
+
+<header class="bar bar-top">
+  <div class="bar-in">
+    <span class="mark">BASTION</span>
+    <span class="ver">2.4.1</span>
+    <div class="navwrap">
+      <nav class="top" aria-label="Sections">
+        <a href="#pillars">pillars</a>
+        <a href="#integrate">integrate</a>
+        <a href="#signal">signal</a>
+        <a href="#deploy">deploy</a>
+        <a href="#docs">docs</a>
+      </nav>
+    </div>
+    <span class="right">self-hosted · BSL 1.1</span>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <div>
+        <h1>BASTION<span class="blk">▌</span></h1>
+        <p class="tagline">identity for machines that answer to people</p>
+        <p class="lede">
+          An identity and authorization server you run yourself. Standard protocols on
+          the front, a policy engine in the middle, an audit stream that an anomaly
+          model reads in place. AI agents are principals, not shared keys.
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="#deploy"><span class="br">[</span> install <span class="br">]</span></a>
+          <a class="btn" href="#docs"><span class="br">[</span> read the docs <span class="br">]</span></a>
+        </div>
+        <p class="meta">
+          <b>sha256</b> a3f1 9c07 be44 d215 …<br>
+          <b>signed</b> minisign, key RWQf6LQ…<br>
+          <b>runs on</b> one binary + postgres. no sidecars, no phone-home.
+        </p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-hd">
+          <span class="num">◂</span>
+          <span>shell — bastion@bootstrap</span>
+          <span class="st">session <b id="term-state">running</b></span>
+        </div>
+        <div class="termwrap">
+          <div class="term" id="term">
+<div class="cl cmd"><span class="pr">$</span><span class="tx"> <b class="bin">curl</b> <span class="fl">-fsSL</span> https://get.bastion.sh <span class="op">|</span> <b class="bin">sh</b></span></div>
+<div class="cl out">  signature       minisign, key RWQf6LQ...       <span class="ok">ok</span></div>
+<div class="cl out">  binary          bastion 2.4.1 linux/amd64      <span class="ok">ok</span></div>
+<div class="cl out">  installed       /usr/local/bin/bastion         <span class="ok">ok</span></div>
+<div class="cl cmd"><span class="pr">$</span><span class="tx"> <b class="bin">bastion</b> doctor</span></div>
+<div class="cl out">  postgres 16.3           reachable, 4 pooled       <span class="ok">ok</span></div>
+<div class="cl out">  redis 7.2               reachable                 <span class="ok">ok</span></div>
+<div class="cl out">  signing keys            ES256, 2 active, 1 next   <span class="ok">ok</span></div>
+<div class="cl out">  clock skew              41ms                      <span class="ok">ok</span></div>
+<div class="cl out">  tenant isolation        row-level, enforced       <span class="ok">ok</span></div>
+<div class="cl out">  smtp                    not configured            <span class="warn">warn</span></div>
+<div class="cl out"><span class="dim">  1 warning. recovery codes are the only reset path until smtp is set.</span></div>
+<div class="cl cmd"><span class="pr">$</span><span class="tx"> <b class="bin">bastion</b> token issue <span class="fl">--client</span> billing-worker <span class="fl">--ttl</span> 15m <span class="op">\</span></span></div>
+<div class="cl cmd cont"><span class="pr"> </span><span class="tx">      <span class="fl">--scope</span> <span class="str">"invoices:read"</span> <span class="fl">--bind</span> dpop</span></div>
+<div class="cl out">  sub   svc:billing-worker      aud   api.internal</div>
+<div class="cl out">  jti   01JQ8F3K2N7T5ZC4        exp   2026-07-22T11:15:04Z (15m)</div>
+<div class="cl out">  cnf   dpop+jkt:9c1a...        risk  <span class="ok">0.02</span></div>
+<div class="cl out"><span class="tok">  eyJhbGciOiJFUzI1NiIsImtpZCI6IjIwMjYtMDQtazMifQ.eyJzdWIiOiJzdmM6...</span></div>
+<div class="cl cmd"><span class="pr">$</span><span class="tx"> <b class="bin">bastion</b> mcp grant <span class="fl">--agent</span> claude-ops <span class="fl">--ttl</span> 30m <span class="op">\</span></span></div>
+<div class="cl cmd cont"><span class="pr"> </span><span class="tx">      <span class="fl">--tools</span> tickets.read,deploys.status <span class="op">\</span></span></div>
+<div class="cl cmd cont"><span class="pr"> </span><span class="tx">      <span class="fl">--on-behalf-of</span> u_8817 <span class="fl">--require-approval</span> <span class="str">"deploys.*"</span></span></div>
+<div class="cl out">  principal   agt_5f21 (claude-ops, agent account)</div>
+<div class="cl out">  delegation  u_8817, consent recorded 11:00:04Z</div>
+<div class="cl out">  scope       tickets.read, deploys.status  <span class="dim">(deny by default)</span></div>
+<div class="cl out">  approval    deploys.* holds for a human, step-up on call</div>
+<div class="cl out">  audit       every call written to auth.stream, replayable</div>
+<div class="cl out">  session     <span class="ok">granted</span>, expires 11:30:04Z</div>
+<div class="cl out">  revoke      bastion mcp revoke agt_5f21</div>
+<div class="cl cmd"><span class="pr">$</span><span class="tx"></span><span class="cur" aria-hidden="true"></span></div>
+          </div>
+        </div>
+        <div class="panel-ft">
+          <button class="skipbtn" id="skipbtn" type="button">esc — skip replay</button>
+          &nbsp; transcript is illustrative · commands are the real CLI surface
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PILLARS ============ -->
+    <section class="band" id="pillars">
+      <h2 class="sect">
+        <span class="tick">▌</span> pillars
+        <span class="fill" aria-hidden="true">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+        <span class="note">three surfaces, one binary</span>
+      </h2>
+
+      <div class="grid3">
+
+        <article class="panel pillar">
+          <div class="panel-hd"><span class="num">01</span><span>authorization</span></div>
+          <div class="panel-bd">
+            <h3>The part other people integrate against</h3>
+            <p>Standard protocols, not a proprietary SDK. If a vendor speaks OIDC or SAML, it speaks Bastion.</p>
+            <div class="tree">
+<span class="row"><span class="br">├──</span> <span class="key">oidc      </span> auth code + PKCE, device, CIBA</span>
+<span class="row"><span class="br">├──</span> <span class="key">oauth 2.1 </span> DPoP-bound tokens, no implicit</span>
+<span class="row"><span class="br">├──</span> <span class="key">saml 2.0  </span> SP- and IdP-initiated, encrypted</span>
+<span class="row"><span class="br">├──</span> <span class="key">scim 2.0  </span> provisioning, JIT deprovision</span>
+<span class="row"><span class="br">├──</span> <span class="key">policy    </span> ReBAC tuples, /v1/check p50 1.8ms</span>
+<span class="row"><span class="br">├──</span> <span class="key">tenancy   </span> row-level, per-tenant signing keys</span>
+<span class="row"><span class="br">└──</span> <span class="key">machines  </span> client_credentials, API keys</span>
+            </div>
+          </div>
+          <div class="panel-ft">api keys hashed sha-256, indexed by prefix · RFC 9700, RFC 9449</div>
+        </article>
+
+        <article class="panel pillar">
+          <div class="panel-hd"><span class="num">02</span><span>signal</span></div>
+          <div class="panel-bd">
+            <h3>The auth stream is the dataset</h3>
+            <p>Every decision is an event with a subject, a tuple path and a verdict. The model reads that stream, never your application database.</p>
+            <div class="tree">
+<span class="row"><span class="br">├──</span> <span class="key">baseline  </span> per principal, 14-day rolling</span>
+<span class="row"><span class="br">├──</span> <span class="key">anomaly   </span> geo velocity, replay, scope drift</span>
+<span class="row"><span class="br">├──</span> <span class="key">risk      </span> 0.00-1.00, carried in the token</span>
+<span class="row"><span class="br">├──</span> <span class="key">ask       </span> plain-language queries over audit</span>
+<span class="row"><span class="br">├──</span> <span class="key">respond   </span> revoke, quarantine, page on-call</span>
+<span class="row"><span class="br">├──</span> <span class="key">explain   </span> every score cites the events</span>
+<span class="row"><span class="br">└──</span> <span class="key">local     </span> inference in your cluster</span>
+            </div>
+          </div>
+          <div class="panel-ft">bundled 3B model, or point it at an endpoint you control</div>
+        </article>
+
+        <article class="panel pillar">
+          <div class="panel-hd"><span class="num">03</span><span>agents / mcp</span></div>
+          <div class="panel-bd">
+            <h3>An agent is a principal, not a shared key</h3>
+            <p>Model Context Protocol servers get scoped, delegated, expiring sessions. Who asked, on whose behalf, and what was allowed are all recorded.</p>
+            <div class="tree">
+<span class="row"><span class="br">├──</span> <span class="key">principal </span> agt_* identity, own audit trail</span>
+<span class="row"><span class="br">├──</span> <span class="key">delegate  </span> on-behalf-of a human, consent kept</span>
+<span class="row"><span class="br">├──</span> <span class="key">scope     </span> per-tool allow list, deny default</span>
+<span class="row"><span class="br">├──</span> <span class="key">approve   </span> step-up before flagged tool calls</span>
+<span class="row"><span class="br">├──</span> <span class="key">budget    </span> call ceilings per grant, per hour</span>
+<span class="row"><span class="br">├──</span> <span class="key">expire    </span> minutes, not months</span>
+<span class="row"><span class="br">└──</span> <span class="key">revoke    </span> one command kills live sessions</span>
+            </div>
+          </div>
+          <div class="panel-ft">mcp over stdio and streamable http · tool calls signed and replayable</div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ============ INTEGRATION ============ -->
+    <section class="band" id="integrate">
+      <h2 class="sect">
+        <span class="tick">▌</span> integrate
+        <span class="fill" aria-hidden="true">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+        <span class="note">2 files, both real</span>
+      </h2>
+
+      <div class="grid2">
+
+        <div class="panel">
+          <div class="panel-hd"><span class="num">~/</span><span>api/verify-token.ts</span><span class="st">resource server</span></div>
+          <div class="scroll">
+            <div class="code">
+<span class="cl"><span class="k">import</span> { <span class="fn">createVerifier</span> } <span class="k">from</span> <span class="s">"@bastion/verify"</span>;</span>
+<span class="cl"></span>
+<span class="cl"><span class="c">// JWKS is cached and rotated on kid miss.</span></span>
+<span class="cl"><span class="c">// No network call in the request path.</span></span>
+<span class="cl"><span class="k">const</span> verify = <span class="fn">createVerifier</span>({</span>
+<span class="cl">  issuer: <span class="s">"https://id.acme.example/o/acme"</span>,</span>
+<span class="cl">  audience: <span class="s">"api.internal"</span>,</span>
+<span class="cl">  algorithms: [<span class="s">"ES256"</span>],</span>
+<span class="cl">  clockToleranceSec: <span class="pn">30</span>,</span>
+<span class="cl">});</span>
+<span class="cl"></span>
+<span class="cl"><span class="k">export async function</span> <span class="fn">requireScope</span>(req, scope) {</span>
+<span class="cl">  <span class="k">const</span> bearer = req.<span class="fn">header</span>(<span class="s">"authorization"</span>)?.<span class="fn">slice</span>(<span class="pn">7</span>);</span>
+<span class="cl">  <span class="k">const</span> claims = <span class="k">await</span> <span class="fn">verify</span>(bearer, {</span>
+<span class="cl">    dpop: req.<span class="fn">header</span>(<span class="s">"dpop"</span>),   <span class="c">// proof of possession</span></span>
+<span class="cl">    htu: req.url, htm: req.method,</span>
+<span class="cl">  });</span>
+<span class="cl"></span>
+<span class="cl">  <span class="k">if</span> (claims.tenant !== req.tenantId)</span>
+<span class="cl">    <span class="k">throw new</span> <span class="fn">Forbidden</span>(<span class="s">"tenant_mismatch"</span>);</span>
+<span class="cl">  <span class="k">if</span> (!claims.scope.<span class="fn">split</span>(<span class="s">" "</span>).<span class="fn">includes</span>(scope))</span>
+<span class="cl">    <span class="k">throw new</span> <span class="fn">Forbidden</span>(<span class="s">"insufficient_scope"</span>);</span>
+<span class="cl"></span>
+<span class="cl">  <span class="k">return</span> claims;  <span class="c">// sub, tenant, scope, risk, jti, exp</span></span>
+<span class="cl">}</span>
+            </div>
+          </div>
+          <div class="panel-ft">verification is local · a revoked session fails the next check, not the current one</div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd"><span class="num">~/</span><span>agents/grant-session.ts</span><span class="st">mcp host</span></div>
+          <div class="scroll">
+            <div class="code">
+<span class="cl"><span class="k">import</span> { <span class="fn">Bastion</span> } <span class="k">from</span> <span class="s">"@bastion/sdk"</span>;</span>
+<span class="cl"></span>
+<span class="cl"><span class="k">const</span> bastion = <span class="k">new</span> <span class="fn">Bastion</span>({</span>
+<span class="cl">  url: <span class="s">"https://id.acme.example"</span>,</span>
+<span class="cl">});</span>
+<span class="cl"></span>
+<span class="cl"><span class="c">// The agent is a principal. The grant is scoped,</span></span>
+<span class="cl"><span class="c">// delegated, budgeted and expiring.</span></span>
+<span class="cl"><span class="k">const</span> session = <span class="k">await</span> bastion.mcp.<span class="fn">grant</span>({</span>
+<span class="cl">  agent: <span class="s">"agt_5f21"</span>,          <span class="c">// claude-ops</span></span>
+<span class="cl">  onBehalfOf: <span class="s">"u_8817"</span>,       <span class="c">// consent stored</span></span>
+<span class="cl">  tools: [<span class="s">"tickets.read"</span>, <span class="s">"deploys.status"</span>],</span>
+<span class="cl">  requireApproval: [<span class="s">"deploys.*"</span>],</span>
+<span class="cl">  budget: { calls: <span class="pn">200</span>, perHour: <span class="pn">60</span> },</span>
+<span class="cl">  ttl: <span class="s">"30m"</span>,</span>
+<span class="cl">});</span>
+<span class="cl"></span>
+<span class="cl">session.<span class="fn">on</span>(<span class="s">"call"</span>, (call) =&gt; {</span>
+<span class="cl">  audit.<span class="fn">write</span>(call);  <span class="c">// tool, args hash, decision</span></span>
+<span class="cl">});</span>
+<span class="cl"></span>
+<span class="cl"><span class="c">// Kill it early, from anywhere:</span></span>
+<span class="cl"><span class="k">await</span> session.<span class="fn">revoke</span>(<span class="s">"task_complete"</span>);</span>
+            </div>
+          </div>
+          <div class="panel-ft">grants are tokens, not config · nothing here is stored on the agent host</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ SIGNAL ============ -->
+    <section class="band" id="signal">
+      <h2 class="sect">
+        <span class="tick">▌</span> signal
+        <span class="fill" aria-hidden="true">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+        <span class="note">tail -f, with an opinion</span>
+      </h2>
+
+      <div class="panel">
+        <div class="panel-hd">
+          <span class="num">▸</span><span>bastion watch --risk --tenant acme</span>
+          <span class="st">follow <b>live</b></span>
+        </div>
+        <div class="logwrap">
+          <div class="log">
+            <div class="lrow"><span class="t">11:02:14.882</span><span class="lv-info">INFO</span><span class="ev">auth.token.issued</span><span class="d">svc:billing-worker → api.internal</span><span class="r r-lo">0.02</span></div>
+            <div class="lrow"><span class="t">11:02:19.447</span><span class="lv-info">INFO</span><span class="ev">auth.session.opened</span><span class="d">u_8817, known device, webauthn</span><span class="r r-lo">0.05</span></div>
+            <div class="lrow"><span class="t">11:03:58.220</span><span class="lv-info">INFO</span><span class="ev">policy.check.allow</span><span class="d">u_8817 viewer→invoice:8812 (2 hops)</span><span class="r r-lo">0.04</span></div>
+            <div class="lrow"><span class="t">11:04:03.115</span><span class="lv-warn">WARN</span><span class="ev">auth.geo.velocity</span><span class="d">u_2290 tashkent → frankfurt in 11m</span><span class="r r-mid">0.61</span></div>
+            <div class="lrow"><span class="t">11:04:03.118</span><span class="lv-alert">ALERT</span><span class="ev">auth.token.replayed</span><span class="d">jti 01JQ8EW2 seen twice, 2 ASNs</span><span class="r r-hi">0.94</span></div>
+            <div class="lrow act"><span class="t">11:04:03.141</span><span class="sp">ACTION  3 sessions revoked, device quarantined, on-call paged (ack 22s)</span></div>
+            <div class="lrow"><span class="t">11:06:52.700</span><span class="lv-info">INFO</span><span class="ev">mcp.tool.call</span><span class="d">agt_5f21 tickets.read, consent u_8817</span><span class="r r-lo">0.03</span></div>
+            <div class="lrow"><span class="t">11:07:41.006</span><span class="lv-warn">WARN</span><span class="ev">mcp.tool.denied</span><span class="d">agt_5f21 deploys.restart, outside grant</span><span class="r r-mid">0.44</span></div>
+            <div class="lrow"><span class="t">11:07:41.009</span><span class="lv-info">INFO</span><span class="ev">mcp.approval.sent</span><span class="d">u_8817 asked to confirm, 30s window</span><span class="r r-lo">0.10</span></div>
+          </div>
+        </div>
+        <div class="panel-ft">risk is computed from the stream, attached to the token, and readable by your services</div>
+      </div>
+
+      <div class="panel" style="margin-top:1rem">
+        <div class="panel-hd"><span class="num">?</span><span>bastion ask</span><span class="st">audit log, natural language</span></div>
+        <div class="ask">
+          <span class="askq"><span class="pr">$</span> <b class="bin">bastion</b> ask <span class="str">"which non-human principals read payroll data outside business hours last week?"</span></span>
+<pre class="table">┌──────────────────────┬──────────────┬───────┬────────────────────┐
+│ <b>principal           </b> │ <b>dataset     </b> │ <b>calls</b> │ <b>window            </b> │
+├──────────────────────┼──────────────┼───────┼────────────────────┤
+│ svc:payroll-export   │ payroll.runs │   412 │ 02:10-04:55 UTC    │
+│ svc:bi-sync          │ payroll.runs │    38 │ 01:05-01:12 UTC    │
+│ agt:claude-ops       │ payroll.runs │     6 │ 22:41-22:44 UTC    │
+└──────────────────────┴──────────────┴───────┴────────────────────┘</pre>
+          <p class="lede" style="max-width:none">
+            Three principals, one of them an agent. svc:payroll-export runs to schedule and matches
+            its baseline. agt:claude-ops read six rows at 22:41 under a delegated grant from u_8817;
+            the grant expired 14 minutes later. Answers cite event ids, so you can replay them.
+          </p>
+        </div>
+        <div class="panel-ft"><span class="spark">risk, last 24h  ▁▁▂▁▁▂▃▁▁▁▂▇▅▂▁▁▁▂▁▁▁▂▁▁</span> &nbsp; peak 0.94 at 11:04 · median 0.04</div>
+      </div>
+    </section>
+
+    <!-- ============ DEPLOY ============ -->
+    <section class="band" id="deploy">
+      <h2 class="sect">
+        <span class="tick">▌</span> deploy
+        <span class="fill" aria-hidden="true">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+        <span class="note">your hardware, your keys</span>
+      </h2>
+
+      <div class="grid3b">
+        <div class="panel">
+          <div class="panel-hd"><span class="num">a</span><span>compose</span></div>
+          <div class="panel-bd mini">
+<span class="cl"><span class="pr">$</span> <b class="bin">bastion</b> init <span class="fl">--compose</span></span>
+<span class="cl"><span class="dim">  wrote compose.yaml, .env</span></span>
+<span class="cl"><span class="pr">$</span> <b class="bin">docker</b> compose up <span class="fl">-d</span></span>
+<span class="cl"><span class="dim">  bastion + postgres</span></span>
+<span class="cl"><span class="dim">  ready on :8443</span> <span class="ok">ok</span></span>
+          </div>
+          <div class="panel-ft">for a laptop or a single box</div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd"><span class="num">b</span><span>kubernetes</span></div>
+          <div class="panel-bd mini">
+<span class="cl"><span class="pr">$</span> <b class="bin">helm</b> install bastion <span class="op">\</span></span>
+<span class="cl">    oci://ghcr.io/bastion/hc <span class="op">\</span></span>
+<span class="cl">    <span class="fl">--set</span> replicas=3 <span class="op">\</span></span>
+<span class="cl">    <span class="fl">--set</span> keys.provider=kms</span>
+<span class="cl"><span class="dim">  3/3 healthy</span> <span class="ok">ok</span></span>
+          </div>
+          <div class="panel-ft">stateless pods, keys in your KMS</div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd"><span class="num">c</span><span>bare metal</span></div>
+          <div class="panel-bd mini">
+<span class="cl"><span class="pr">$</span> <b class="bin">bastion</b> serve <span class="op">\</span></span>
+<span class="cl">    <span class="fl">--config</span> /etc/bastion.toml</span>
+<span class="cl"><span class="dim">  systemd unit installed</span></span>
+<span class="cl"><span class="dim">  listening 0.0.0.0:8443</span> <span class="ok">ok</span></span>
+<span class="cl"><span class="dim">  air-gapped mode available</span></span>
+          </div>
+          <div class="panel-ft">one static binary, no runtime deps</div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:1rem">
+        <div class="panel-hd"><span class="num">=</span><span>what you are actually running</span></div>
+        <div class="panel-bd">
+          <div class="specs">
+            <div class="row"><span class="lbl">runtime</span><span class="val">single static binary, 41 MB, no agents or sidecars</span></div>
+            <div class="row"><span class="lbl">state</span><span class="val">postgres 14+ only · redis optional, for distributed rate limits</span></div>
+            <div class="row"><span class="lbl">scale</span><span class="val">3 replicas ≈ 40k policy checks/s on 4 vCPU each, p99 6ms</span></div>
+            <div class="row"><span class="lbl">keys</span><span class="val">ES256 by default, rotate on a schedule, or delegate to KMS/HSM</span></div>
+            <div class="row"><span class="lbl">data</span><span class="val">stays on your infrastructure; no telemetry, no phone-home</span></div>
+            <div class="row"><span class="lbl">migrate</span><span class="val">bastion migrate --plan ./export.json  <span class="dim"># reads Keycloak or Okta exports</span></span></div>
+            <div class="row"><span class="lbl">licence</span><span class="val">BSL 1.1, converting to Apache 2.0 after four years</span></div>
+            <div class="row"><span class="lbl">upgrade</span><span class="val">forward-only migrations, one minor at a time, rollback tested</span></div>
+          </div>
+        </div>
+        <div class="panel-ft">no seat pricing · no "contact us" tier for SAML · nothing is gated behind a call</div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer id="docs">
+  <div class="wrap">
+    <div class="fgrid">
+      <div class="fcol">
+        <h4>protocols</h4>
+        <a href="#integrate">OIDC + PKCE</a>
+        <a href="#integrate">OAuth 2.1 / DPoP</a>
+        <a href="#integrate">SAML 2.0</a>
+        <a href="#integrate">SCIM 2.0</a>
+      </div>
+      <div class="fcol">
+        <h4>signal</h4>
+        <a href="#signal">risk scoring</a>
+        <a href="#signal">anomaly rules</a>
+        <a href="#signal">ask, over audit</a>
+        <a href="#signal">event schema</a>
+      </div>
+      <div class="fcol">
+        <h4>agents</h4>
+        <a href="#pillars">MCP grants</a>
+        <a href="#pillars">delegation + consent</a>
+        <a href="#pillars">approval flows</a>
+        <a href="#pillars">revocation</a>
+      </div>
+      <div class="fcol">
+        <h4>operate</h4>
+        <a href="#deploy">install</a>
+        <a href="#deploy">upgrade path</a>
+        <a href="#deploy">key rotation</a>
+        <a href="#deploy">air-gapped mode</a>
+      </div>
+    </div>
+    <div class="disc">
+      <span>BASTION 2.4.1</span>
+      <span class="dim">·</span>
+      <span>docs.bastion.sh</span>
+      <span class="dim">·</span>
+      <span>Bastion is a fictional product made for a design exercise; all figures, logs, keys and identifiers on this page are illustrative.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============ DESIGN REVIEW APPENDIX ============ -->
+<section class="dvp">
+  <div class="wrap">
+    <div class="panel">
+      <div class="panel-hd"><span class="num">::</span><span>palette</span><span class="st">read from the live stylesheet</span></div>
+      <div class="dvp-grid">
+        <div class="dvp-sw" data-token="--bg"><span class="dvp-chip" style="background: var(--bg)"></span><b>--bg</b><code></code></div>
+        <div class="dvp-sw" data-token="--panel"><span class="dvp-chip" style="background: var(--panel)"></span><b>--panel</b><code></code></div>
+        <div class="dvp-sw" data-token="--panel-alt"><span class="dvp-chip" style="background: var(--panel-alt)"></span><b>--panel-alt</b><code></code></div>
+        <div class="dvp-sw" data-token="--border"><span class="dvp-chip" style="background: var(--border)"></span><b>--border</b><code></code></div>
+        <div class="dvp-sw" data-token="--fg"><span class="dvp-chip" style="background: var(--fg)"></span><b>--fg</b><code></code></div>
+        <div class="dvp-sw" data-token="--fg-dim"><span class="dvp-chip" style="background: var(--fg-dim)"></span><b>--fg-dim</b><code></code></div>
+        <div class="dvp-sw" data-token="--fg-faint"><span class="dvp-chip" style="background: var(--fg-faint)"></span><b>--fg-faint</b><code></code></div>
+        <div class="dvp-sw" data-token="--amber"><span class="dvp-chip" style="background: var(--amber)"></span><b>--amber</b><code></code></div>
+        <div class="dvp-sw" data-token="--teal"><span class="dvp-chip" style="background: var(--teal)"></span><b>--teal</b><code></code></div>
+        <div class="dvp-sw" data-token="--red"><span class="dvp-chip" style="background: var(--red)"></span><b>--red</b><code></code></div>
+        <div class="dvp-sw" data-token="--steel"><span class="dvp-chip" style="background: var(--steel)"></span><b>--steel</b><code></code></div>
+        <div class="dvp-sw" data-token="--sel"><span class="dvp-chip" style="background: var(--sel)"></span><b>--sel</b><code></code></div>
+      </div>
+      <div class="panel-ft">amber = prompt, cursor, active · teal = ok · red = failure · steel = identifiers in code only</div>
+    </div>
+  </div>
+</section>
+
+<div class="bar bar-bottom">
+  <div class="bar-in">
+    <span class="mode">NORMAL</span>
+    <span class="keyhint"><kbd>t</kbd> theme &nbsp; <kbd>esc</kbd> skip replay</span>
+    <span class="spacer"></span>
+    <span class="right keyhint">utf-8 · ln 1,1 · bastion://landing</span>
+  </div>
+</div>
+
+<div class="dvp-switch">
+  <button type="button" data-mode="light" aria-pressed="false">light</button>
+  <button type="button" data-mode="dark" aria-pressed="true">dark</button>
+</div>
+
+<script>
+  /* ---------- theme switch + live palette readout ---------- */
+  (function () {
+    var root = document.documentElement;
+    var buttons = Array.prototype.slice.call(document.querySelectorAll('.dvp-switch button'));
+
+    function paint() {
+      var cs = getComputedStyle(root);
+      Array.prototype.forEach.call(document.querySelectorAll('.dvp-sw'), function (sw) {
+        var token = sw.getAttribute('data-token');
+        var out = sw.querySelector('code');
+        if (out) out.textContent = cs.getPropertyValue(token).trim();
+      });
+    }
+
+    function set(mode) {
+      root.dataset.theme = mode;
+      buttons.forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.getAttribute('data-mode') === mode));
+      });
+      requestAnimationFrame(paint);
+    }
+
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () { set(b.getAttribute('data-mode')); });
+    });
+
+    var initial = root.dataset.theme ||
+      (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    set(initial);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 't' || e.key === 'T') {
+        var target = e.target;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
+        set(root.dataset.theme === 'light' ? 'dark' : 'light');
+      }
+    });
+  })();
+
+  /* ---------- hero shell session ---------- */
+  (function () {
+    var term = document.getElementById('term');
+    if (!term) return;
+
+    var state = document.getElementById('term-state');
+    var skipBtn = document.getElementById('skipbtn');
+    var lines = Array.prototype.slice.call(term.querySelectorAll('.cl'));
+    var cursor = term.querySelector('.cur');
+    var last = lines[lines.length - 1];
+
+    function done(hint) {
+      if (state) { state.textContent = 'exit 0'; }
+      if (skipBtn) { skipBtn.disabled = true; skipBtn.textContent = hint; }
+    }
+
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) { done('reduced motion — full session shown'); return; }
+
+    /* record the text of every line, then blank it */
+    var records = lines.map(function (line) {
+      var tx = line.querySelector('.tx');
+      var root = tx || line;
+      var rec = { el: line, tx: tx, typed: !!tx, nodes: [], total: 0 };
+
+      (function walk(node) {
+        for (var i = 0; i < node.childNodes.length; i++) {
+          var child = node.childNodes[i];
+          if (child.nodeType === 3) {
+            rec.nodes.push({ node: child, full: child.data });
+            rec.total += child.data.length;
+          } else if (child.nodeType === 1 && child.className.indexOf('cur') === -1) {
+            walk(child);
+          }
+        }
+      })(root);
+
+      return rec;
+    });
+
+    /* hold the height so nothing jumps while the session replays */
+    term.style.minHeight = term.getBoundingClientRect().height + 'px';
+
+    records.forEach(function (rec) {
+      rec.el.classList.add('pend');
+      rec.nodes.forEach(function (n) { n.node.data = ''; });
+    });
+
+    function reveal(rec, count) {
+      var left = count;
+      rec.nodes.forEach(function (n) {
+        var take = Math.max(0, Math.min(n.full.length, left));
+        n.node.data = n.full.slice(0, take);
+        left -= take;
+      });
+    }
+
+    var stopped = false;
+
+    function finish() {
+      if (stopped) return;
+      stopped = true;
+      records.forEach(function (rec) {
+        rec.el.classList.remove('pend');
+        rec.nodes.forEach(function (n) { n.node.data = n.full; });
+      });
+      var tail = last.querySelector('.tx') || last;
+      tail.parentNode.appendChild(cursor);
+      term.style.minHeight = '';
+      done('replay complete');
+    }
+
+    if (skipBtn) skipBtn.addEventListener('click', finish);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') finish();
+    });
+
+    (function run() {
+      var i = 0;
+
+      function step() {
+        if (stopped) return;
+        if (i >= records.length) { finish(); return; }
+
+        var rec = records[i++];
+        rec.el.classList.remove('pend');
+
+        if (rec.typed && rec.total > 0) {
+          rec.tx.appendChild(cursor);
+          var c = 0;
+
+          (function type() {
+            if (stopped) return;
+            c++;
+            reveal(rec, c);
+            if (c < rec.total) {
+              setTimeout(type, 9 + Math.random() * 16);
+            } else {
+              setTimeout(step, 190);
+            }
+          })();
+        } else {
+          reveal(rec, rec.total);
+          if (rec.typed) {
+            rec.tx.appendChild(cursor);
+            setTimeout(step, 120);
+          } else {
+            setTimeout(step, 55 + Math.random() * 70);
+          }
+        }
+      }
+
+      setTimeout(step, 420);
+    })();
+  })();
+</script>
